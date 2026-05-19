@@ -1,419 +1,1102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Jigawa State — Public Asset Verification Portal</title>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<!-- Lucide Icons -->
-<script src="https://unpkg.com/lucide@latest"></script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --green:#008751; --green-l:#10B981; --green-d:#005C37;
-  --gold:#D4AF37; --gold-l:#FDE047;
-  --bg-light: #F8FAFC; --surface: #FFFFFF;
-  --gray-50:#F9FAFB; --gray-100:#F1F5F9; --gray-200:#E2E8F0;
-  --gray-500:#64748B; --gray-700:#334155; --gray-900:#0F172A;
-}
-body{font-family:'Inter',sans-serif;background:var(--bg-light);color:var(--gray-900);min-height:100vh}
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Jigawa State — Public Asset Verification</title>
+    
+    <!-- React & ReactDOM strictly configured for browser execution -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        /* Import clean interface font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Nigerian Government Theme Base */
+            --color-green-primary: #008751;
+            --color-green-light: #10B981;
+            --color-green-dark: #005C37;
+            --color-gold-primary: #D4AF37;
+            
+            /* Interface Neutrals */
+            --color-bg-main: #F8FAFC;
+            --color-surface: #FFFFFF;
+            --color-gray-50: #F9FAFB;
+            --color-gray-100: #F1F5F9;
+            --color-gray-200: #E2E8F0;
+            --color-gray-500: #64748B;
+            --color-gray-700: #334155;
+            --color-gray-900: #0F172A;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--color-bg-main);
+            color: var(--color-gray-900);
+            min-height: 100vh;
+        }
 
-/* ── Header ── */
-.site-header{
-  background: var(--surface); border-bottom: 1px solid var(--gray-200);
-  padding:1.2rem 2rem; display:flex; align-items:center; justify-content:space-between;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100;
-}
-.header-brand{display:flex;align-items:center;gap:1rem}
-.header-icon{
-  width:44px;height:44px;
-  background:linear-gradient(135deg,var(--green),var(--green-d)); color: white;
-  border-radius:12px;display:flex;align-items:center;justify-content:center;
-  flex-shrink:0; border: 2px solid var(--gold);
-}
-.header-title{color:var(--gray-900);font-size:1.15rem;font-weight:800;line-height:1.2; letter-spacing: -0.02em;}
-.header-sub{color:var(--gray-500);font-size:0.75rem;font-weight:600; text-transform: uppercase; letter-spacing: 0.05em;}
-.header-login{
-  background: var(--bg-light); color: var(--green); border: 1.5px solid var(--gray-200);
-  border-radius:8px; padding:0.6rem 1.2rem; font-size:0.85rem; font-weight:700;
-  cursor:pointer; text-decoration:none; transition:all 0.2s; display: flex; align-items: center; gap: 0.5rem;
-}
-.header-login:hover{border-color: var(--green); background: rgba(0, 135, 81, 0.05);}
+        /* ── Global Header ── */
+        .portal-header {
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-gray-200);
+            padding: 1.2rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-identity {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .header-seal-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--color-green-primary), var(--color-green-dark));
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 2px solid var(--color-gold-primary);
+        }
+        
+        .header-title-text {
+            color: var(--color-gray-900);
+            font-size: 1.15rem;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+        
+        .header-subtitle-text {
+            color: var(--color-gray-500);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .btn-staff-login {
+            background: var(--color-bg-main);
+            color: var(--color-green-primary);
+            border: 1.5px solid var(--color-gray-200);
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-staff-login:hover {
+            border-color: var(--color-green-primary);
+            background: rgba(0, 135, 81, 0.05);
+        }
 
-/* ── Hero ── */
-.hero{
-  background:linear-gradient(135deg, var(--green-d) 0%, var(--green) 100%);
-  padding:4rem 2rem;text-align:center;color:white; position: relative; overflow: hidden;
-}
-.hero::before {
-    content: ''; position: absolute; inset: 0; opacity: 0.05; pointer-events: none;
-    background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 20px 20px;
-}
-.hero h1{font-size:2.2rem;font-weight:800;margin-bottom:0.8rem; letter-spacing: -0.03em;}
-.hero p{color:rgba(255,255,255,0.9);font-size:1.05rem;max-width:600px;margin:0 auto 2.5rem; line-height: 1.6;}
+        /* ── Hero Search Section ── */
+        .verification-hero {
+            background: linear-gradient(135deg, var(--color-green-dark) 0%, var(--color-green-primary) 100%);
+            padding: 4rem 2rem;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .verification-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0.05;
+            pointer-events: none;
+            background-image: radial-gradient(#ffffff 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .verification-hero h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 0.8rem;
+            letter-spacing: -0.03em;
+        }
+        
+        .verification-hero p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.05rem;
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.6;
+        }
 
-/* ── Search box ── */
-.search-wrap{max-width:650px;margin:0 auto;position:relative; z-index: 2;}
-.search-box{
-  display:flex;background:white;border-radius:12px;
-  box-shadow:0 10px 25px -5px rgba(0,0,0,0.2);overflow:hidden;
-  border: 1px solid rgba(255,255,255,0.2);
-}
-.search-icon-wrap { padding: 1rem 0 1rem 1.2rem; display: flex; align-items: center; color: var(--gray-500); background: white; }
-.search-box input{
-  flex:1;padding:1rem 1rem;border:none;font-size:1rem;
-  font-family:'Inter',sans-serif;outline:none;color:var(--gray-900);
-}
-.search-box button{
-  padding:0 2rem;background: var(--gray-900);border:none;
-  font-size:1rem;font-weight:700;color:white;cursor:pointer;
-  font-family:'Inter',sans-serif;transition:background 0.2s;white-space:nowrap;
-  display: flex; align-items: center; gap: 0.5rem;
-}
-.search-box button:hover{background: black;}
-.search-hint{color:rgba(255,255,255,0.7);font-size:0.8rem;margin-top:0.8rem;text-align:center; font-weight: 500;}
+        /* ── Search Input ── */
+        .search-container {
+            max-width: 650px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .search-input-group {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .search-icon-box {
+            padding: 1rem 0 1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            color: var(--color-gray-500);
+            background: white;
+        }
+        
+        .search-input-group input {
+            flex: 1;
+            padding: 1rem 1rem;
+            border: none;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            color: var(--color-gray-900);
+        }
+        
+        .btn-execute-search {
+            padding: 0 2rem;
+            background: var(--color-gray-900);
+            border: none;
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-execute-search:hover {
+            background: black;
+        }
+        
+        .search-disclaimer {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            margin-top: 0.8rem;
+            text-align: center;
+            font-weight: 500;
+        }
 
-/* ── Container ── */
-.container{max-width:900px;margin:-2rem auto 2rem;padding:0 1.5rem; position: relative; z-index: 5;}
+        /* ── Content Container ── */
+        .main-content-wrapper {
+            max-width: 900px;
+            margin: -2rem auto 2rem;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 5;
+        }
 
-/* ── Status banner ── */
-.status-banner{
-  display:flex;align-items:center;gap:1rem;
-  padding:1.2rem 1.5rem;border-radius:12px;margin-bottom:2rem;
-  font-weight:600;font-size:0.9rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-}
-.status-banner.online{background:#F0FDF4;border:1px solid #BBF7D0;color:#166534}
-.status-banner.offline{background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C}
-.status-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
-.dot-green{background:#22C55E;animation:pulse 1.5s infinite}
-.dot-red{background:#EF4444}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(0.8); opacity:0.8;}}
+        /* ── Network Status Banner ── */
+        .network-status-banner {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.2rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        
+        .network-status-banner.is-online {
+            background: #F0FDF4;
+            border: 1px solid #BBF7D0;
+            color: #166534;
+        }
+        
+        .network-status-banner.is-offline {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            color: #B91C1C;
+        }
+        
+        .network-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .pulse-green {
+            background: #22C55E;
+            animation: pingAnimation 1.5s infinite;
+        }
+        
+        .static-red {
+            background: #EF4444;
+        }
+        
+        @keyframes pingAnimation {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.8); opacity: 0.8; }
+        }
 
-/* ── Card ── */
-.card{background:white;border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--gray-200); overflow:hidden;margin-bottom:1.5rem}
-.card-head{padding:1.2rem 1.5rem;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:0.8rem; background: var(--bg-light);}
-.card-head h3{font-size:1.05rem;font-weight:800; color: var(--gray-900);}
-.card-head i { color: var(--green); }
-.card-body{padding:1.5rem}
+        /* ── Standard Card Layout ── */
+        .data-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border: 1px solid var(--color-gray-200);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        
+        .data-card-header {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid var(--color-gray-100);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: var(--color-bg-main);
+        }
+        
+        .data-card-header h3 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--color-gray-900);
+        }
+        
+        .data-card-header i {
+            color: var(--color-green-primary);
+        }
+        
+        .data-card-body {
+            padding: 1.5rem;
+        }
 
-/* ── Result ── */
-.result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
-.result-field{background:var(--gray-50);border-radius:10px;padding:1rem; border: 1px solid var(--gray-100);}
-.rf-label{font-size:0.7rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
-.rf-value{font-size:0.95rem;font-weight:700;color:var(--gray-900)}
+        /* ── Asset Data Grid ── */
+        .asset-data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .data-field-box {
+            background: var(--color-gray-50);
+            border-radius: 10px;
+            padding: 1rem;
+            border: 1px solid var(--color-gray-100);
+        }
+        
+        .field-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--color-gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        
+        .field-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--color-gray-900);
+        }
 
-.verified-badge{
-  display:flex;align-items:center;gap:1rem;
-  background:linear-gradient(135deg,#F0FDF4,#DCFCE7);
-  border:2px solid #22C55E;border-radius:16px;
-  padding:1.5rem;margin-bottom:1.5rem; box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.1);
-}
-.verified-icon{color: #16A34A; background: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0;}
-.verified-text h3{font-size:1.1rem;font-weight:800;color:#166534; margin-bottom: 0.2rem;}
-.verified-text p{font-size:0.85rem;color:#166534;opacity:0.85; line-height: 1.4;}
-.verified-hash{font-family:monospace;font-size:0.75rem;color:#166534;word-break:break-all;margin-top:0.8rem;background:rgba(34,197,94,0.15);padding:0.6rem;border-radius:8px; font-weight: 600;}
+        /* ── Authenticity Badge ── */
+        .authenticity-badge {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
+            border: 2px solid #22C55E;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.1);
+        }
+        
+        .auth-badge-icon {
+            color: #16A34A;
+            background: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        
+        .auth-badge-text h3 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #166534;
+            margin-bottom: 0.2rem;
+        }
+        
+        .auth-badge-text p {
+            font-size: 0.85rem;
+            color: #166534;
+            opacity: 0.85;
+            line-height: 1.4;
+        }
+        
+        .hash-display-box {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: #166534;
+            word-break: break-all;
+            margin-top: 0.8rem;
+            background: rgba(34, 197, 94, 0.15);
+            padding: 0.6rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
 
-.not-found{text-align:center;padding:4rem 2rem;color:var(--gray-500);}
-.not-found .icon{color: var(--gray-400); margin-bottom:1.5rem; display: flex; justify-content: center;}
-.not-found h3{font-size:1.2rem;font-weight:800;color:var(--gray-900);margin-bottom:0.5rem}
+        /* ── Not Found State ── */
+        .record-not-found {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--color-gray-500);
+        }
+        
+        .record-not-found .icon-wrapper {
+            color: var(--color-gray-500);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .record-not-found h3 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--color-gray-900);
+            margin-bottom: 0.5rem;
+        }
 
-/* ── Timeline ── */
-.timeline{position:relative;padding-left:1.8rem; margin-top: 1rem;}
-.timeline::before{content:'';position:absolute;left:9px;top:0;bottom:0;width:2px;background:var(--gray-200)}
-.tl-item{position:relative;padding-bottom:1.5rem}
-.tl-dot{position:absolute;left:-1.8rem;top:2px;width:16px;height:16px;border-radius:50%;background:var(--green);border:3px solid white;box-shadow:0 0 0 2px var(--green)}
-.tl-item.transfer .tl-dot{background:#3B82F6; box-shadow:0 0 0 2px #3B82F6;}
-.tl-item.audit .tl-dot{background:var(--gold); box-shadow:0 0 0 2px var(--gold);}
-.tl-time{font-size:0.75rem;font-weight: 600; color:var(--gray-500);margin-bottom:0.4rem; display: flex; align-items: center; gap: 0.4rem;}
-.tl-body{background:var(--gray-50);border: 1px solid var(--gray-200); border-radius:12px;padding:1rem}
-.tl-action{font-size:0.9rem;font-weight:800;color:var(--gray-900); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;}
-.tl-detail{font-size:0.85rem;color:var(--gray-700);margin-top:0.4rem; line-height: 1.5;}
-.tl-hash{font-family:monospace;font-size:0.7rem;color:var(--gray-500);margin-top:0.6rem;word-break:break-all; background: var(--gray-100); padding: 0.4rem 0.6rem; border-radius: 6px;}
+        /* ── Transaction Timeline ── */
+        .transaction-timeline {
+            position: relative;
+            padding-left: 1.8rem;
+            margin-top: 1rem;
+        }
+        
+        .transaction-timeline::before {
+            content: '';
+            position: absolute;
+            left: 9px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--color-gray-200);
+        }
+        
+        .timeline-node {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+        
+        .timeline-indicator {
+            position: absolute;
+            left: -1.8rem;
+            top: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--color-green-primary);
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px var(--color-green-primary);
+        }
+        
+        .timeline-node.type-transfer .timeline-indicator {
+            background: #3B82F6;
+            box-shadow: 0 0 0 2px #3B82F6;
+        }
+        
+        .timeline-node.type-audit .timeline-indicator {
+            background: var(--color-gold-primary);
+            box-shadow: 0 0 0 2px var(--color-gold-primary);
+        }
+        
+        .timeline-timestamp {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-gray-500);
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .timeline-content-box {
+            background: var(--color-gray-50);
+            border: 1px solid var(--color-gray-200);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        
+        .timeline-action-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--color-gray-900);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
+        }
+        
+        .timeline-data-row {
+            font-size: 0.85rem;
+            color: var(--color-gray-700);
+            margin-top: 0.4rem;
+            line-height: 1.5;
+        }
+        
+        .timeline-tx-hash {
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: var(--color-gray-500);
+            margin-top: 0.6rem;
+            word-break: break-all;
+            background: var(--color-gray-100);
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+        }
 
-/* ── How it works ── */
-.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-top:1rem}
-.how-card{background:var(--gray-50);border-radius:12px;padding:1.5rem;text-align:center; border: 1px solid var(--gray-200);}
-.how-icon{color: var(--green); margin-bottom:1rem; display: flex; justify-content: center;}
-.how-title{font-size:0.95rem;font-weight:800;margin-bottom:0.5rem; color: var(--gray-900);}
-.how-desc{font-size:0.85rem;color:var(--gray-500);line-height:1.6}
+        /* ── Instructions Grid ── */
+        .instruction-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .instruction-step {
+            background: var(--color-gray-50);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--color-gray-200);
+        }
+        
+        .instruction-icon {
+            color: var(--color-green-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .instruction-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: var(--color-gray-900);
+        }
+        
+        .instruction-desc {
+            font-size: 0.85rem;
+            color: var(--color-gray-500);
+            line-height: 1.6;
+        }
 
-/* ── Badge ── */
-.badge{display:inline-flex; align-items: center; padding:0.3rem 0.8rem;border-radius:50px;font-size:0.75rem;font-weight:700; letter-spacing: 0.02em;}
-.b-active{background:#F0FDF4;color:#166534; border: 1px solid #BBF7D0;}
-.b-transferred{background:#EFF6FF;color:#1E40AF; border: 1px solid #BFDBFE;}
-.b-inactive{background:#FEF3C7;color:#92400E; border: 1px solid #FDE68A;}
-.b-disposed{background:#FEF2F2;color:#B91C1C; border: 1px solid #FECACA;}
+        /* ── Status Pills ── */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        
+        .pill-active { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
+        .pill-transferred { background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; }
+        .pill-inactive { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+        .pill-disposed { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
 
-/* ── Footer ── */
-.footer{background:var(--gray-900);color:rgba(255,255,255,0.7);text-align:center;padding:3rem 2rem;font-size:0.85rem;margin-top:4rem}
-.footer strong{color:var(--gold-l)}
+        /* ── Public Footer ── */
+        .portal-footer {
+            background: var(--color-gray-900);
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            padding: 3rem 2rem;
+            font-size: 0.85rem;
+            margin-top: 4rem;
+        }
+        
+        .portal-footer strong {
+            color: var(--color-gold-light);
+        }
 
-.spin{animation:spin 1s linear infinite;display:inline-block;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading{text-align:center;padding:3rem;color:var(--gray-500); display: flex; flex-direction: column; align-items: center; gap: 1rem; font-weight: 600;}
+        .icon-spin {
+            animation: circularSpin 1s linear infinite;
+            display: inline-block;
+        }
+        
+        @keyframes circularSpin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .system-loading-view {
+            text-align: center;
+            padding: 3rem;
+            color: var(--color-gray-500);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 600;
+        }
 
-@media(max-width:600px){.hero h1{font-size:1.8rem}.search-box input{font-size:0.95rem} .hero { padding: 3rem 1.5rem; }}
-</style>
+        @media(max-width: 600px) {
+            .verification-hero h1 { font-size: 1.8rem; }
+            .search-input-group input { font-size: 0.95rem; }
+            .verification-hero { padding: 3rem 1.5rem; }
+        }
+    </style>
 </head>
 <body>
-<div id="root"></div>
+    <div id="application-root"></div>
 
-<script type="text/babel">
-const {useState,useEffect,useRef}=React;
-const API='http://localhost:5000/api';
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // Define base route for internal API
+        const BACKEND_API_URL = 'http://localhost:5000/api';
 
-// Icon wrapper for UMD React
-function Icon({ name, className="", size=20 }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    if(ref.current) window.lucide.createIcons({ root: ref.current.parentElement });
-  }, [name]);
-  return <i ref={ref} data-lucide={name} className={className} style={{width: size, height: size}}></i>;
-}
+        // ── Component: Dynamic Lucide Icon Renderer ─────────────────
+        function DynamicIcon({ iconName, classNameText = "", sizeValue = 20, inlineStyles = {} }) {
+            const iconRefNode = useRef(null);
+            
+            useEffect(() => {
+                // Instantiates SVG replacing the <i> tag
+                if (iconRefNode.current) {
+                    window.lucide.createIcons({ root: iconRefNode.current.parentElement });
+                }
+            }, [iconName]);
+            
+            return (
+                <i 
+                    ref={iconRefNode} 
+                    data-lucide={iconName} 
+                    className={classNameText} 
+                    style={{ width: sizeValue, height: sizeValue, ...inlineStyles }}
+                ></i>
+            );
+        }
 
-function fmtCurrency(n){return 'NGN '+Number(n||0).toLocaleString('en-NG',{minimumFractionDigits:2,maximumFractionDigits:2})}
-function fmtDate(s){if(!s)return '-';return new Date(s).toLocaleDateString('en-NG',{day:'2-digit',month:'long',year:'numeric'})}
-function fmtTs(ts){if(!ts)return '-';return new Date(ts).toLocaleString('en-NG',{dateStyle:'medium',timeStyle:'short'})}
+        // ── Formatting Utilities ────────────────────────────────────
+        function formatNairaCurrency(amountNumber) {
+            return 'NGN ' + Number(amountNumber || 0).toLocaleString('en-NG', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+        
+        function formatStandardDate(isoDateString) {
+            if (!isoDateString) return '-';
+            return new Date(isoDateString).toLocaleDateString('en-NG', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+        
+        function formatFullTimestamp(unixOrIsoTimestamp) {
+            if (!unixOrIsoTimestamp) return '-';
+            return new Date(unixOrIsoTimestamp).toLocaleString('en-NG', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            });
+        }
 
-function actionDetails(a){
-  if(a==='REGISTER_ASSET') return { icon: 'file-plus', label: 'Asset Registered', color: 'green' };
-  if(a==='TRANSFER_ASSET') return { icon: 'arrow-right-left', label: 'Ownership Transferred', color: 'blue' };
-  if(a==='AUDIT_ASSET') return { icon: 'clipboard-check', label: 'Audit Recorded', color: 'gold' };
-  return { icon: 'link', label: 'Blockchain Entry', color: 'gray' };
-}
-function actionClass(a){
-  if(a==='TRANSFER_ASSET') return 'transfer';
-  if(a==='AUDIT_ASSET') return 'audit';
-  return '';
-}
+        function extractActionContext(actionTypeString) {
+            if (actionTypeString === 'REGISTER_ASSET') {
+                return { iconKey: 'file-plus', displayLabel: 'Asset Registered', uiColor: 'green' };
+            }
+            if (actionTypeString === 'TRANSFER_ASSET') {
+                return { iconKey: 'arrow-right-left', displayLabel: 'Ownership Transferred', uiColor: 'blue' };
+            }
+            if (actionTypeString === 'AUDIT_ASSET') {
+                return { iconKey: 'clipboard-check', displayLabel: 'Audit Recorded', uiColor: 'gold' };
+            }
+            return { iconKey: 'link', displayLabel: 'Blockchain Entry', uiColor: 'gray' };
+        }
+        
+        function determineTimelineClass(actionTypeString) {
+            if (actionTypeString === 'TRANSFER_ASSET') return 'type-transfer';
+            if (actionTypeString === 'AUDIT_ASSET') return 'type-audit';
+            return '';
+        }
 
-function App(){
-  const [query,setQuery]=useState('');
-  const [result,setResult]=useState(null); 
-  const [searching,setSearching]=useState(false);
-  const [error,setError]=useState('');
-  const [systemOnline,setSystemOnline]=useState(false);
+        // ── Primary Application Component ───────────────────────────
+        function PublicVerificationApp() {
+            // Core States
+            const [searchQuery, setSearchQuery] = useState('');
+            const [verificationResult, setVerificationResult] = useState(null); 
+            const [isSearching, setIsSearching] = useState(false);
+            const [errorMessage, setErrorMessage] = useState('');
+            const [isSystemOnline, setIsSystemOnline] = useState(false);
 
-  useEffect(()=>{
-    fetch(API+'/health')
-      .then(r=>r.json())
-      .then(()=>setSystemOnline(true))
-      .catch(()=>setSystemOnline(false));
-  },[]);
+            // Poll health endpoint on mount
+            useEffect(() => {
+                fetch(BACKEND_API_URL + '/health')
+                    .then(res => res.json())
+                    .then(() => setIsSystemOnline(true))
+                    .catch(() => setIsSystemOnline(false));
+            }, []);
 
-  useEffect(() => { window.lucide.createIcons(); }, [result, searching, systemOnline, error]);
+            // Re-bind Lucide icons when state dictates a re-render
+            useEffect(() => { 
+                window.lucide.createIcons(); 
+            }, [verificationResult, isSearching, isSystemOnline, errorMessage]);
 
-  async function search(){
-    const q=query.trim();
-    if(!q){setError('Please enter an Asset ID to verify.');return}
-    setSearching(true);setError('');setResult(null);
-    try{
-      const loginRes=await fetch(API+'/auth/login',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({username:'viewer1',password:'View@2025!'})
-      });
-      const loginData=await loginRes.json();
-      if(!loginData.token){setError('Verification service temporarily unavailable.');setSearching(false);return}
+            /**
+             * Core Search/Verification execution
+             */
+            async function triggerVerificationQuery() {
+                const sanitizedQuery = searchQuery.trim();
+                
+                if (!sanitizedQuery) {
+                    setErrorMessage('Please enter a valid Government Asset ID to proceed with verification.');
+                    return;
+                }
+                
+                setIsSearching(true);
+                setErrorMessage('');
+                setVerificationResult(null);
+                
+                try {
+                    // Fetch guest access token using the default viewer account
+                    const loginRequest = await fetch(BACKEND_API_URL + '/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: 'viewer1', password: 'View@2025!' })
+                    });
+                    
+                    const loginResponse = await loginRequest.json();
+                    
+                    if (!loginResponse.token) {
+                        setErrorMessage('Verification service is temporarily unavailable due to node synchronization.');
+                        setIsSearching(false);
+                        return;
+                    }
 
-      const assetRes=await fetch(API+'/assets/'+encodeURIComponent(q),{
-        headers:{Authorization:'Bearer '+loginData.token}
-      });
-      if(assetRes.status===404){setResult({notFound:true,query:q});setSearching(false);return}
-      const assetData=await assetRes.json();
-      setResult(assetData);
-    } catch(e){
-      setError('Network error. Please ensure the State Registry system is online.');
-    }
-    setSearching(false);
-  }
+                    // Request the specific asset from the ledger
+                    const assetRequest = await fetch(BACKEND_API_URL + '/assets/' + encodeURIComponent(sanitizedQuery), {
+                        headers: { Authorization: 'Bearer ' + loginResponse.token }
+                    });
+                    
+                    if (assetRequest.status === 404) {
+                        setVerificationResult({ notFound: true, queryTarget: sanitizedQuery });
+                        setIsSearching(false);
+                        return;
+                    }
+                    
+                    const assetData = await assetRequest.json();
+                    setVerificationResult(assetData);
+                    
+                } catch (networkError) {
+                    setErrorMessage('Network connection error. Please ensure the Jigawa State Registry is operational.');
+                }
+                
+                setIsSearching(false);
+            }
 
-  function badgeClass(s){
-    const m={Active:'b-active',Transferred:'b-transferred',Inactive:'b-inactive',Disposed:'b-disposed'};
-    return 'badge '+(m[s]||'badge');
-  }
+            // Determines class mapping for the status
+            function getPillClass(statusLiteral) {
+                const classMap = {
+                    'Active': 'pill-active',
+                    'Transferred': 'pill-transferred',
+                    'Inactive': 'pill-inactive',
+                    'Disposed': 'pill-disposed'
+                };
+                return 'status-pill ' + (classMap[statusLiteral] || 'status-pill');
+            }
 
-  return <>
-    <header className="site-header">
-      <div className="header-brand">
-        <div className="header-icon"><Icon name="shield-check" size={24}/></div>
-        <div>
-          <div className="header-title">Jigawa State Registry</div>
-          <div className="header-sub">Public Asset Verification</div>
-        </div>
-      </div>
-      <a href="/" className="header-login"><Icon name="log-in" size={16}/> Staff Login</a>
-    </header>
+            return (
+                <React.Fragment>
+                    {/* Navigation Header */}
+                    <header className="portal-header">
+                        <div className="header-identity">
+                            <div className="header-seal-icon">
+                                <DynamicIcon iconName="shield-check" sizeValue={24} />
+                            </div>
+                            <div>
+                                <div className="header-title-text">Jigawa State Registry</div>
+                                <div className="header-subtitle-text">Public Asset Verification</div>
+                            </div>
+                        </div>
+                        <a href="/" className="btn-staff-login">
+                            <DynamicIcon iconName="log-in" sizeValue={16} /> Secure Staff Login
+                        </a>
+                    </header>
 
-    <section className="hero">
-      <h1>Verify Government Assets</h1>
-      <p>Enter an official Asset ID to verify its authenticity, ownership history, and registration status on the immutable state blockchain.</p>
-      <div className="search-wrap">
-        <div className="search-box">
-          <div className="search-icon-wrap"><Icon name="search" size={20}/></div>
-          <input
-            type="text"
-            placeholder="Enter Asset ID (e.g. JSG-BLDG-0001)"
-            value={query}
-            onChange={e=>setQuery(e.target.value)}
-            onKeyDown={e=>e.key==='Enter'&&search()}
-          />
-          <button onClick={search} disabled={searching}>
-            {searching?<><Icon name="loader-2" className="spin"/> Verifying</>:<><Icon name="check-circle"/> Verify</>}
-          </button>
-        </div>
-        <div className="search-hint">
-          <Icon name="info" size={14} className="inline-icon"/> Public portal. No login required for read-only verification.
-        </div>
-      </div>
-    </section>
+                    {/* Top Hero block */}
+                    <section className="verification-hero">
+                        <h1>Verify Government Assets</h1>
+                        <p>
+                            Enter an official Asset ID to verify its authenticity, ownership history, 
+                            and registration status against the immutable state blockchain ledger.
+                        </p>
+                        
+                        <div className="search-container">
+                            <div className="search-input-group">
+                                <div className="search-icon-box">
+                                    <DynamicIcon iconName="search" sizeValue={20} />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Enter Official Asset ID (e.g. JSG-BLDG-0001)"
+                                    value={searchQuery}
+                                    onChange={(event) => setSearchQuery(event.target.value)}
+                                    onKeyDown={(event) => event.key === 'Enter' && triggerVerificationQuery()}
+                                />
+                                <button onClick={triggerVerificationQuery} disabled={isSearching}>
+                                    {isSearching ? (
+                                        <React.Fragment>
+                                            <DynamicIcon iconName="loader-2" classNameText="icon-spin" /> Verifying Node...
+                                        </React.Fragment>
+                                    ) : (
+                                        <React.Fragment>
+                                            <DynamicIcon iconName="check-circle" /> Verify Asset
+                                        </React.Fragment>
+                                    )}
+                                </button>
+                            </div>
+                            <div className="search-disclaimer">
+                                <DynamicIcon iconName="info" sizeValue={14} inlineStyles={{ verticalAlign: 'middle', marginRight: '4px' }} /> 
+                                Public verification portal. Accessing this node requires no authorization.
+                            </div>
+                        </div>
+                    </section>
 
-    <div className="container">
-      <div className={'status-banner '+(systemOnline?'online':'offline')}>
-        <div className={'status-dot '+(systemOnline?'dot-green':'dot-red')}/>
-        <div>
-          <div>{systemOnline?'JIGAWA-MAINNET Blockchain — Online & Operational':'System Offline — Server connection failed'}</div>
-          {systemOnline&&<div style={{fontSize:'0.8rem',opacity:0.8,marginTop:4, fontWeight: 500}}>
-            Secured by Proof-of-Work Consensus · All records are cryptographically tamper-proof
-          </div>}
-        </div>
-      </div>
+                    {/* Middle Content Wrapper */}
+                    <div className="main-content-wrapper">
+                        
+                        {/* Server Operational Status */}
+                        <div className={'network-status-banner ' + (isSystemOnline ? 'is-online' : 'is-offline')}>
+                            <div className={'network-dot ' + (isSystemOnline ? 'pulse-green' : 'static-red')} />
+                            <div>
+                                <div>
+                                    {isSystemOnline 
+                                        ? 'JIGAWA-MAINNET Blockchain Node — Operational & Syncing' 
+                                        : 'Network Isolation Detected — Node offline'}
+                                </div>
+                                {isSystemOnline && (
+                                    <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: 4, fontWeight: 500 }}>
+                                        Secured by Proof-of-Work Consensus Architecture
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
-      {error&&<div style={{background:'#FEF2F2',border:'1px solid #FECACA',borderRadius:12,padding:'1.2rem',marginBottom:'1.5rem',color:'#B91C1C',fontWeight:600,fontSize:'0.9rem', display: 'flex', alignItems:'center', gap: '0.8rem'}}>
-        <Icon name="alert-triangle"/> {error}
-      </div>}
+                        {/* Error Handling Box */}
+                        {errorMessage && (
+                            <div style={{
+                                background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12,
+                                padding: '1.2rem', marginBottom: '1.5rem', color: '#B91C1C', 
+                                fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.8rem'
+                            }}>
+                                <DynamicIcon iconName="alert-triangle" /> {errorMessage}
+                            </div>
+                        )}
 
-      {searching&&<div className="loading"><Icon name="loader-2" size={32} className="spin"/> Querying Distributed Ledger...</div>}
+                        {/* Loading Activity Indication */}
+                        {isSearching && (
+                            <div className="system-loading-view">
+                                <DynamicIcon iconName="loader-2" sizeValue={32} classNameText="icon-spin" /> 
+                                Interrogating Distributed Ledger Network...
+                            </div>
+                        )}
 
-      {result&&!result.notFound&&result.asset&&<>
-        <div className="verified-badge">
-          <div className="verified-icon"><Icon name="shield-check" size={28}/></div>
-          <div className="verified-text">
-            <h3>Asset Verified — Officially Registered</h3>
-            <p>This asset is officially registered and its record is tamper-proof on the Jigawa State blockchain.</p>
-            <div className="verified-hash"><Icon name="hash" size={14}/> Block Hash: {result.asset.block_hash}</div>
-          </div>
-        </div>
+                        {/* Verified Success Display */}
+                        {verificationResult && !verificationResult.notFound && verificationResult.asset && (
+                            <React.Fragment>
+                                <div className="authenticity-badge">
+                                    <div className="auth-badge-icon">
+                                        <DynamicIcon iconName="shield-check" sizeValue={28} />
+                                    </div>
+                                    <div className="auth-badge-text">
+                                        <h3>Asset Verification Confirmed — Legitimate Record</h3>
+                                        <p>This asset is officially registered. Its properties and history are cryptographically secured on the Jigawa State blockchain.</p>
+                                        <div className="hash-display-box">
+                                            <DynamicIcon iconName="hash" sizeValue={14} inlineStyles={{ verticalAlign: 'middle' }} /> 
+                                            Block Hash Pointer: {verificationResult.asset.block_hash}
+                                        </div>
+                                    </div>
+                                </div>
 
-        <div className="card">
-          <div className="card-head"><Icon name="landmark"/> <h3>Asset Details</h3></div>
-          <div className="card-body">
-            <div className="result-grid">
-              <div className="result-field"><div className="rf-label">Asset ID</div><div className="rf-value" style={{fontFamily:'monospace', color: 'var(--green)'}}>{result.asset.asset_id}</div></div>
-              <div className="result-field"><div className="rf-label">Asset Name</div><div className="rf-value">{result.asset.asset_name}</div></div>
-              <div className="result-field"><div className="rf-label">Category</div><div className="rf-value">{result.asset.category}</div></div>
-              <div className="result-field"><div className="rf-label">Department</div><div className="rf-value">{result.asset.department}</div></div>
-              <div className="result-field"><div className="rf-label">Declared Value</div><div className="rf-value">{fmtCurrency(result.asset.asset_value)}</div></div>
-              <div className="result-field"><div className="rf-label">Current Owner</div><div className="rf-value">{result.asset.owner}</div></div>
-              <div className="result-field"><div className="rf-label">Status</div><div className="rf-value"><span className={badgeClass(result.asset.status)}>{result.asset.status}</span></div></div>
-              <div className="result-field"><div className="rf-label">Registered On</div><div className="rf-value">{fmtDate(result.asset.registration_date)}</div></div>
-              <div className="result-field"><div className="rf-label">Block Number</div><div className="rf-value">#{result.asset.block_index}</div></div>
-            </div>
-          </div>
-        </div>
+                                {/* Asset General Details */}
+                                <div className="data-card">
+                                    <div className="data-card-header">
+                                        <DynamicIcon iconName="landmark" /> 
+                                        <h3>Current Asset Profile</h3>
+                                    </div>
+                                    <div className="data-card-body">
+                                        <div className="asset-data-grid">
+                                            <div className="data-field-box">
+                                                <div className="field-label">System Asset ID</div>
+                                                <div className="field-value" style={{ fontFamily: 'monospace', color: 'var(--color-green-primary)' }}>
+                                                    {verificationResult.asset.asset_id}
+                                                </div>
+                                            </div>
+                                            <div className="data-field-box">
+                                                <div className="field-label">Official Nomenclature</div>
+                                                <div className="field-value">{verificationResult.asset.asset_name}</div>
+                                            </div>
+                                            <div className="data-field-box">
+                                                <div className="field-label">Classification</div>
+                                                <div className="field-value">{verificationResult.asset.category}</div>
+                                            </div>
+                                            <div className="data-field-box">
+                                                <div className="field-label">Holding Department</div>
+                                                <div className="field-value">{verificationResult.asset.department}</div>
+                                            </div>
+                                            <div className="data-field-box">
+                                                <div className="field-label">Registered Valuation</div>
+                                                <div className="field-value">{formatNairaCurrency(verificationResult.asset.asset_value)}</div>
+                                            </div>
+                                            <div className="data-field-box">
+                                                <div className="field-label">Current Custodian</div>
+                                                <div className="field-value">{verificationResult.asset.owner}</div>
+                                            </div>
+                                            <div className="data-field-box">
+                                                <div className="field-label">Current State</div>
+                                                <div className="field-value">
+                                                    <span className={getPillClass(verificationResult.asset.status)}>
+                                                        {verificationResult.asset.status}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="data-field-box">
+                                                <div className="field-label">Registration Epoch</div>
+                                                <div className="field-value">{formatStandardDate(verificationResult.asset.registration_date)}</div>
+                                            </div>
+                                            <div className="data-field-box">
+                                                <div className="field-label">Mined Block Index</div>
+                                                <div className="field-value">#{verificationResult.asset.block_index}</div>
+                                            </div>
+                                        </div>
 
-        <div className="card">
-          <div className="card-head"><Icon name="git-commit-vertical"/> <h3>Ledger History ({result.history?.length||0} records)</h3></div>
-          <div className="card-body">
-            <p style={{fontSize:'0.85rem',color:'#64748B',marginBottom:'1.5rem'}}>
-              All transactions are permanently recorded cryptographically and cannot be altered or deleted.
-            </p>
-            <div className="timeline">
-              {(result.history||[]).map((h,i)=>{
-                const details = actionDetails(h.action);
-                return <div key={i} className={'tl-item '+actionClass(h.action)}>
-                  <div className="tl-dot"/>
-                  <div className="tl-time"><Icon name="clock" size={14}/> {fmtTs(h.timestamp)} · Block #{h.block_index}</div>
-                  <div className="tl-body">
-                    <div className="tl-action"><Icon name={details.icon} size={16}/> {details.label}</div>
-                    <div className="tl-detail"><strong>Executed by:</strong> {h.actor} · <strong>TX ID:</strong> {h.tx_id}</div>
-                    {h.payload?.to_owner&&<div className="tl-detail"><strong>Transferred to:</strong> {h.payload.to_owner}</div>}
-                    {h.payload?.reason&&<div className="tl-detail"><strong>Reason:</strong> {h.payload.reason}</div>}
-                    {h.payload?.findings&&<div className="tl-detail"><strong>Findings:</strong> {h.payload.findings}</div>}
-                    <div className="tl-hash">Hash: {h.block_hash}</div>
-                  </div>
-                </div>
-              })}
-            </div>
-          </div>
-        </div>
+                                        <div style={{
+                                            background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: 10,
+                                            padding: '1rem', marginTop: '1rem', fontSize: '0.85rem', color: '#475569', 
+                                            display: 'flex', gap: '0.8rem', alignItems: 'flex-start'
+                                        }}>
+                                            <DynamicIcon iconName="scale" sizeValue={20} inlineStyles={{ flexShrink: 0, marginTop: '2px' }} />
+                                            <div>
+                                                <strong style={{ color: '#1E293B', display: 'block', marginBottom: '4px' }}>
+                                                    Statutory Notice:
+                                                </strong> 
+                                                This asset operates strictly under the jurisdiction of the Jigawa State Government. Unauthorized appropriation, transfer, or liquidation is an immediate violation of established governance law.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-        <div className="card">
-          <div className="card-head"><Icon name="shield"/> <h3>Blockchain Integrity Profile</h3></div>
-          <div className="card-body">
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:'1rem'}}>
-              {[
-                ['Network','JIGAWA-MAINNET', 'server'],
-                ['Algorithm','SHA-256 Cryptography', 'file-key'],
-                ['Consensus','Proof-of-Work', 'cpu'],
-                ['Jurisdiction','Jigawa State, Nigeria', 'map-pin'],
-                ['Authority','Jigawa State Government', 'landmark'],
-                ['Verified At',new Date().toLocaleString('en-NG'), 'calendar-check']
-              ].map(([l,v, icon])=><div key={l} style={{background:'#F8FAFC',borderRadius:10,padding:'1rem', border: '1px solid #F1F5F9'}}>
-                <div style={{fontSize:'0.7rem',fontWeight:700,color:'#64748B',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:'0.4rem', display:'flex', alignItems:'center', gap:'0.4rem'}}><Icon name={icon} size={14}/> {l}</div>
-                <div style={{fontWeight:700,fontSize:'0.9rem', color: '#0F172A'}}>{v}</div>
-              </div>)}
-            </div>
-          </div>
-        </div>
-      </>}
+                                {/* Smart Contract History Timeline */}
+                                <div className="data-card">
+                                    <div className="data-card-header">
+                                        <DynamicIcon iconName="git-commit-vertical" /> 
+                                        <h3>Immutable Ledger History ({verificationResult.history?.length || 0} iterations)</h3>
+                                    </div>
+                                    <div className="data-card-body">
+                                        <p style={{ fontSize: '0.85rem', color: '#64748B', marginBottom: '1.5rem' }}>
+                                            Transactions displayed below reflect chronologically executed Smart Contracts that modified this asset's properties.
+                                        </p>
+                                        <div className="transaction-timeline">
+                                            {(verificationResult.history || []).map((historyObj, historyIndex) => {
+                                                const actionContext = extractActionContext(historyObj.action);
+                                                return (
+                                                    <div key={historyIndex} className={'timeline-node ' + determineTimelineClass(historyObj.action)}>
+                                                        <div className="timeline-indicator" />
+                                                        <div className="timeline-timestamp">
+                                                            <DynamicIcon iconName="clock" sizeValue={14} /> 
+                                                            {formatFullTimestamp(historyObj.timestamp)} · Block Identity #{historyObj.block_index}
+                                                        </div>
+                                                        <div className="timeline-content-box">
+                                                            <div className="timeline-action-title">
+                                                                <DynamicIcon iconName={actionContext.iconKey} sizeValue={16} /> 
+                                                                {actionContext.displayLabel}
+                                                            </div>
+                                                            <div className="timeline-data-row">
+                                                                <strong>Authorized Entity:</strong> {historyObj.actor} · <strong>Cryptographic TX ID:</strong> {historyObj.tx_id}
+                                                            </div>
+                                                            {historyObj.payload?.to_owner && (
+                                                                <div className="timeline-data-row">
+                                                                    <strong>Reallocated to:</strong> {historyObj.payload.to_owner}
+                                                                </div>
+                                                            )}
+                                                            {historyObj.payload?.reason && (
+                                                                <div className="timeline-data-row">
+                                                                    <strong>Justification:</strong> {historyObj.payload.reason}
+                                                                </div>
+                                                            )}
+                                                            {historyObj.payload?.findings && (
+                                                                <div className="timeline-data-row">
+                                                                    <strong>Auditor Findings:</strong> {historyObj.payload.findings}
+                                                                </div>
+                                                            )}
+                                                            <div className="timeline-tx-hash">Transaction Hash Anchor: {historyObj.block_hash}</div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
 
-      {result?.notFound&&<div className="card">
-        <div className="card-body">
-          <div className="not-found">
-            <div className="icon"><Icon name="search-x" size={48}/></div>
-            <h3>Asset Not Found</h3>
-            <p style={{fontSize:'0.95rem',marginTop:'0.5rem', color: '#64748B'}}>
-              No asset with ID <strong style={{color: '#0F172A'}}>"{result.query}"</strong> was found in the blockchain registry.
-            </p>
-          </div>
-        </div>
-      </div>}
+                                {/* Blockchain Network Profile */}
+                                <div className="data-card">
+                                    <div className="data-card-header">
+                                        <DynamicIcon iconName="shield" /> 
+                                        <h3>Network Integrity Framework</h3>
+                                    </div>
+                                    <div className="data-card-body">
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                                            {[
+                                                ['Network Architecture', 'JIGAWA-MAINNET Node', 'server'],
+                                                ['Encryption Standard', 'SHA-256 Hashing', 'file-key'],
+                                                ['Validation Mechanism', 'Proof-of-Work Protocol', 'cpu'],
+                                                ['Legal Jurisdiction', 'Jigawa State, Republic of Nigeria', 'map-pin'],
+                                                ['Managing Authority', 'Jigawa State Registry', 'landmark'],
+                                                ['Timestamp Sync', new Date().toLocaleString('en-NG'), 'calendar-check']
+                                            ].map(([propertyLabel, propertyValue, propertyIcon]) => (
+                                                <div key={propertyLabel} style={{ background: '#F8FAFC', borderRadius: 10, padding: '1rem', border: '1px solid #F1F5F9' }}>
+                                                    <div style={{
+                                                        fontSize: '0.7rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', 
+                                                        letterSpacing: '0.05em', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem'
+                                                    }}>
+                                                        <DynamicIcon iconName={propertyIcon} sizeValue={14} /> {propertyLabel}
+                                                    </div>
+                                                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>
+                                                        {propertyValue}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </React.Fragment>
+                        )}
 
-      {!result&&!searching&&<div className="card">
-        <div className="card-head"><Icon name="help-circle"/> <h3>How Verification Works</h3></div>
-        <div className="card-body">
-          <div className="how-grid">
-            <div className="how-card">
-              <div className="how-icon"><Icon name="scan-barcode" size={36}/></div>
-              <div className="how-title">1. Enter Asset ID</div>
-              <div className="how-desc">Type the official government asset ID found on tags or documentation.</div>
-            </div>
-            <div className="how-card">
-              <div className="how-icon"><Icon name="server-cog" size={36}/></div>
-              <div className="how-title">2. Blockchain Query</div>
-              <div className="how-desc">The system queries the immutable Jigawa blockchain for matching records.</div>
-            </div>
-            <div className="how-card">
-              <div className="how-icon"><Icon name="file-search" size={36}/></div>
-              <div className="how-title">3. Instant Verification</div>
-              <div className="how-desc">View the full ownership history, value, and status of the government asset.</div>
-            </div>
-            <div className="how-card">
-              <div className="how-icon"><Icon name="shield-check" size={36}/></div>
-              <div className="how-title">4. Tamper-Proof Records</div>
-              <div className="how-desc">Every record is secured by SHA-256 cryptography and cannot be altered.</div>
-            </div>
-          </div>
-        </div>
-      </div>}
-    </div>
+                        {/* Unsuccessful Query Output */}
+                        {verificationResult?.notFound && (
+                            <div className="data-card">
+                                <div className="data-card-body">
+                                    <div className="record-not-found">
+                                        <div className="icon-wrapper">
+                                            <DynamicIcon iconName="search-x" sizeValue={48} />
+                                        </div>
+                                        <h3>Query Returned No Records</h3>
+                                        <p style={{ fontSize: '0.95rem', marginTop: '0.5rem', color: '#64748B' }}>
+                                            No asset associated with the parameter <strong style={{ color: '#0F172A' }}>"{verificationResult.queryTarget}"</strong> exists within the distributed ledger.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
-    <footer className="footer">
-      <div style={{marginBottom:'0.8rem', fontSize: '1rem'}}>
-        <strong>Jigawa State Asset Registry</strong> — Blockchain-Based Asset Registry for Public Sector Accountability
-      </div>
-      <div style={{color: '#94A3B8'}}>Jigawa State Government of Nigeria · All Rights Reserved · Secured by Proof-of-Work Blockchain</div>
-      <div style={{marginTop:'1rem',fontSize:'0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', justify-content: 'center', gap: '0.5rem'}}>
-        <Icon name="link" size={14}/> JIGAWA-MAINNET · SHA-256 · Immutable Records · {new Date().getFullYear()}
-      </div>
-    </footer>
-  </>;
-}
+                        {/* Default Guidance View */}
+                        {!verificationResult && !isSearching && (
+                            <div className="data-card">
+                                <div className="data-card-header">
+                                    <DynamicIcon iconName="help-circle" /> 
+                                    <h3>Verification Standard Operating Procedure</h3>
+                                </div>
+                                <div className="data-card-body">
+                                    <div className="instruction-grid">
+                                        <div className="instruction-step">
+                                            <div className="instruction-icon">
+                                                <DynamicIcon iconName="scan-barcode" sizeValue={36} />
+                                            </div>
+                                            <div className="instruction-title">1. Supply Identity</div>
+                                            <div className="instruction-desc">Submit the official government asset nomenclature ID for processing.</div>
+                                        </div>
+                                        <div className="instruction-step">
+                                            <div className="instruction-icon">
+                                                <DynamicIcon iconName="server-cog" sizeValue={36} />
+                                            </div>
+                                            <div className="instruction-title">2. Engage Network</div>
+                                            <div className="instruction-desc">The application engages the decentralized ledger to isolate data blocks.</div>
+                                        </div>
+                                        <div className="instruction-step">
+                                            <div className="instruction-icon">
+                                                <DynamicIcon iconName="file-search" sizeValue={36} />
+                                            </div>
+                                            <div className="instruction-title">3. Retrieve Matrix</div>
+                                            <div className="instruction-desc">Extract the complete historical ledger, valuation, and physical custody logs.</div>
+                                        </div>
+                                        <div className="instruction-step">
+                                            <div className="instruction-icon">
+                                                <DynamicIcon iconName="shield-check" sizeValue={36} />
+                                            </div>
+                                            <div className="instruction-title">4. Validate Integity</div>
+                                            <div className="instruction-desc">Data is mathematically guaranteed to be resistant to retroactive alterations.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
-</script>
+                    {/* Standard Footer */}
+                    <footer className="portal-footer">
+                        <div style={{ marginBottom: '0.8rem', fontSize: '1rem' }}>
+                            <strong>Jigawa State Asset Registry</strong> — Utilizing Decentralized Mechanics for State Resource Tracking
+                        </div>
+                        <div style={{ color: '#94A3B8' }}>
+                            Jigawa State Government, Nigeria · All Output Secured by Cryptographic Proof-of-Work
+                        </div>
+                        <div style={{
+                            marginTop: '1rem', fontSize: '0.8rem', color: '#64748B', 
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
+                        }}>
+                            <DynamicIcon iconName="link" sizeValue={14} /> JIGAWA-MAINNET Integration · SHA-256 Architecture · {new Date().getFullYear()}
+                        </div>
+                    </footer>
+                </React.Fragment>
+            );
+        }
+
+        // Mount the React Application
+        const reactRootContainer = ReactDOM.createRoot(document.getElementById('application-root'));
+        reactRootContainer.render(<PublicVerificationApp />);
+    </script>
 </body>
 </html>
