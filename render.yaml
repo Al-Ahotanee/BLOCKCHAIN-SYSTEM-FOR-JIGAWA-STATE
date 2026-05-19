@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: sarauta-app
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: DATABASE_PATH
+        value: /tmp/sarauta.db
