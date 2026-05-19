@@ -864,25 +864,24 @@
         }
 
         // ── Shared UI Components ──────────────────────────────────────
-        function LucideIcon({ iconName, customClass = "", iconSize = 20, inlineStyles = {} }) {
-            const spanRef = useRef(null);
-            
-            useEffect(() => {
-                if (spanRef.current) {
-                    window.lucide.createIcons({ root: spanRef.current.parentElement });
-                }
-            });
-            
-            return (
-                <i 
-                    ref={spanRef} 
-                    data-lucide={iconName} 
-                    className={customClass} 
-                    style={{ width: iconSize, height: iconSize, ...inlineStyles }}
-                ></i>
-            );
-        }
+       function LucideIcon({ iconName, customClass = "", iconSize = 20, inlineStyles = {} }) {
+    const wrapperRef = useRef(null);
 
+    useEffect(() => {
+        if (wrapperRef.current) {
+            wrapperRef.current.innerHTML = `<i data-lucide="${iconName}"></i>`;
+            window.lucide.createIcons({ root: wrapperRef.current });
+        }
+    }, [iconName, iconSize]);
+
+    return (
+        <span
+            ref={wrapperRef}
+            className={customClass}
+            style={{ display: 'inline-flex', width: iconSize, height: iconSize, ...inlineStyles }}
+        ></span>
+    );
+}
         function NotificationSystem({ notifications }) {
             return (
                 <div className="notification-tray">
