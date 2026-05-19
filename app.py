@@ -1,562 +1,524 @@
 """
-JIGAWA STATE BLOCKCHAIN ENGINE
-==============================
+JIGAWA STATE API SERVER
+=======================
 Blockchain-Based Asset Registry for Public Sector Accountability
-Jigawa State Government — Enterprise Blockchain Layer
+Jigawa State Government — Flask REST API (Production Ready)
 
-Local Python blockchain with:
-- SHA-256 cryptographic hashing
-- Proof-of-Work (PoW) consensus
-- Smart Contract simulation (asset registration, transfer, audit)
-- Chain integrity validation
-- Merkle root for block transactions
-- Tamper-proof immutable ledger
+Endpoints:
+  POST /api/auth/login
+  POST /api/auth/logout
+  GET  /api/dashboard
+  POST /api/assets/register
+  GET  /api/assets
+  GET  /api/assets/<asset_id>
+  GET  /api/assets/<asset_id>/history
+  POST /api/assets/transfer
+  POST /api/assets/audit
+  POST /api/blockchain/mine
+  GET  /api/blockchain/chain
+  GET  /api/blockchain/validate
+  GET  /api/blockchain/stats
+  GET  /api/reports/export
+  GET  /api/reports/audit-log
 """
 
-import hashlib
+import os
 import json
-import time
 import uuid
+import hashlib
 import sqlite3
-from datetime import datetime, timezone
-from typing import List, Dict, Optional, Any
+import secrets
+import functools
+from datetime import datetime, timezone, timedelta
+from flask import Flask, request, jsonify, g, make_response, send_from_directory
+from flask_cors import CORS
 
-
-# ─────────────────────────────────────────────────────────
-#  SMART CONTRACTS (Pure Python — stateless rule engines)
-# ─────────────────────────────────────────────────────────
-
-class SmartContract:
-    """
-    Base class for all smart contracts.
-    Contracts are stateless validators; state lives on the chain.
-    """
-
-    @staticmethod
-    def execute(action: str, payload: dict, chain_state: dict) -> dict:
-        raise NotImplementedError
-
-
-class AssetRegistrationContract(SmartContract):
-    """
-    SC-001: Asset Registration Contract
-    Validates and registers a new government asset onto the blockchain.
-    """
-
-    REQUIRED_FIELDS = [
-        "asset_id", "asset_name", "category", "department",
-        "asset_value", "owner", "status"
-    ]
-
-    VALID_CATEGORIES = [
-        "Building", "Vehicle", "Equipment", "Infrastructure",
-        "Land", "Technology", "Furniture", "Other"
-    ]
-
-    VALID_STATUSES = ["Active", "Inactive", "Under Maintenance", "Disposed", "Transferred"]
-
-    @classmethod
-    def execute(cls, action: str, payload: dict, chain_state: dict) -> dict:
-        if action != "REGISTER_ASSET":
-            return {"success": False, "error": "Invalid action for AssetRegistrationContract"}
-
-        for field in cls.REQUIRED_FIELDS:
-            if field not in payload or not str(payload[field]).strip():
-                return {"success": False, "error": f"Missing required field: {field}"}
-
-        if payload["category"] not in cls.VALID_CATEGORIES:
-            return {"success": False, "error": f"Invalid category. Must be one of: {', '.join(cls.VALID_CATEGORIES)}"}
-
-        if payload["status"] not in cls.VALID_STATUSES:
-            return {"success": False, "error": f"Invalid status. Must be one of: {', '.join(cls.VALID_STATUSES)}"}
-
-        try:
-            val = float(payload["asset_value"])
-            if val <= 0:
-                raise ValueError
-        except (ValueError, TypeError):
-            return {"success": False, "error": "Asset value must be a positive number"}
-
-        if payload["asset_id"] in chain_state.get("registered_assets", {}):
-            return {"success": False, "error": f"Asset ID {payload['asset_id']} already registered on blockchain"}
-
-        return {
-            "success": True,
-            "contract": "SC-001-AssetRegistration",
-            "gas_used": 21000,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-
-
-class AssetTransferContract(SmartContract):
-    """
-    SC-002: Asset Transfer Contract
-    Validates and processes the transfer of an asset between departments or owners.
-    """
-
-    @classmethod
-    def execute(cls, action: str, payload: dict, chain_state: dict) -> dict:
-        if action != "TRANSFER_ASSET":
-            return {"success": False, "error": "Invalid action for AssetTransferContract"}
-
-        required = ["asset_id", "from_owner", "to_owner", "reason", "authorized_by"]
-        for field in required:
-            if field not in payload or not str(payload[field]).strip():
-                return {"success": False, "error": f"Missing required field: {field}"}
-
-        registered = chain_state.get("registered_assets", {})
-        if payload["asset_id"] not in registered:
-            return {"success": False, "error": f"Asset {payload['asset_id']} not found on blockchain"}
-
-        current_asset = registered[payload["asset_id"]]
-        if current_asset.get("owner") != payload["from_owner"]:
-            return {"success": False, "error": f"Ownership mismatch. Current owner is '{current_asset.get('owner')}'"}
-
-        if payload["from_owner"] == payload["to_owner"]:
-            return {"success": False, "error": "Sender and receiver cannot be the same"}
-
-        return {
-            "success": True,
-            "contract": "SC-002-AssetTransfer",
-            "gas_used": 45000,
-            "previous_owner": payload["from_owner"],
-            "new_owner": payload["to_owner"],
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-
-
-class AuditContract(SmartContract):
-    """
-    SC-003: Audit Contract
-    Records official audits, physical verification, and valuation updates.
-    """
-
-    @classmethod
-    def execute(cls, action: str, payload: dict, chain_state: dict) -> dict:
-        if action != "AUDIT_ASSET":
-            return {"success": False, "error": "Invalid action for AuditContract"}
-
-        required = ["asset_id", "auditor", "audit_type", "findings"]
-        for field in required:
-            if field not in payload or not str(payload[field]).strip():
-                return {"success": False, "error": f"Missing required field: {field}"}
-
-        valid_audit_types = ["Routine", "Special", "Compliance", "Disposal", "Valuation"]
-        if payload["audit_type"] not in valid_audit_types:
-            return {"success": False, "error": f"Audit type must be one of: {', '.join(valid_audit_types)}"}
-
-        registered = chain_state.get("registered_assets", {})
-        if payload["asset_id"] not in registered:
-            return {"success": False, "error": f"Asset {payload['asset_id']} not found on blockchain"}
-
-        return {
-            "success": True,
-            "contract": "SC-003-Audit",
-            "gas_used": 15000,
-            "audit_id": f"AUD-{uuid.uuid4().hex[:8].upper()}",
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-
+from blockchain import get_blockchain, JigawaBlockchain
 
 # ─────────────────────────────────────────────────────────
-#  BLOCK
+#  APP SETUP & CONFIGURATION
 # ─────────────────────────────────────────────────────────
 
-class Block:
-    DIFFICULTY = 3
+# Define the base directory for serving static HTML files
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, index: int, transactions: List[dict], previous_hash: str, mined_by: str = "system"):
-        self.index = index
-        self.timestamp = time.time()
-        self.transactions = transactions
-        self.previous_hash = previous_hash
-        self.mined_by = mined_by
-        self.merkle_root = self._compute_merkle_root()
-        self.nonce = 0
-        self.hash = self._mine()
+# Setup dynamic Database Path for Railway Persistent Volumes
+# If DATABASE_PATH env variable exists (e.g. /data/jigawa_registry.db), use it. Otherwise, use local directory.
+DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(BASE_DIR, "jigawa_registry.db"))
+SESSION_EXPIRY_HOURS = 8
 
-    def _compute_merkle_root(self) -> str:
-        if not self.transactions:
-            return hashlib.sha256(b"empty").hexdigest()
-        
-        tx_hashes = [hashlib.sha256(json.dumps(tx, sort_keys=True).encode()).hexdigest() for tx in self.transactions]
-        
-        while len(tx_hashes) > 1:
-            if len(tx_hashes) % 2 != 0:
-                tx_hashes.append(tx_hashes[-1])
-            new_level = []
-            for i in range(0, len(tx_hashes), 2):
-                combined = tx_hashes[i] + tx_hashes[i + 1]
-                new_level.append(hashlib.sha256(combined.encode()).hexdigest())
-            tx_hashes = new_level
-            
-        return tx_hashes[0]
-
-    def _compute_hash(self) -> str:
-        block_string = json.dumps({
-            "index": self.index,
-            "timestamp": self.timestamp,
-            "transactions": self.transactions,
-            "previous_hash": self.previous_hash,
-            "merkle_root": self.merkle_root,
-            "nonce": self.nonce,
-            "mined_by": self.mined_by
-        }, sort_keys=True)
-        return hashlib.sha256(block_string.encode()).hexdigest()
-
-    def _mine(self) -> str:
-        target = "0" * self.DIFFICULTY
-        while True:
-            h = self._compute_hash()
-            if h.startswith(target):
-                return h
-            self.nonce += 1
-
-    def to_dict(self) -> dict:
-        return {
-            "index": self.index,
-            "timestamp": self.timestamp,
-            "timestamp_human": datetime.fromtimestamp(self.timestamp, tz=timezone.utc).isoformat(),
-            "transactions": self.transactions,
-            "previous_hash": self.previous_hash,
-            "merkle_root": self.merkle_root,
-            "nonce": self.nonce,
-            "mined_by": self.mined_by,
-            "hash": self.hash,
-            "tx_count": len(self.transactions)
-        }
-
+app = Flask(__name__, static_folder=BASE_DIR, static_url_path="")
+app.config["SECRET_KEY"] = secrets.token_hex(32)
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
 # ─────────────────────────────────────────────────────────
-#  BLOCKCHAIN
+#  PAGE ROUTES (Serve HTML files)
 # ─────────────────────────────────────────────────────────
 
-class JigawaBlockchain:
-    CONTRACTS = {
-        "REGISTER_ASSET": AssetRegistrationContract,
-        "TRANSFER_ASSET": AssetTransferContract,
-        "AUDIT_ASSET": AuditContract
-    }
+@app.route("/")
+def home():
+    return send_from_directory(BASE_DIR, "login.html")
 
-    def __init__(self, db_path: str = "jigawa_registry.db"):
-        self.db_path = db_path
-        self.chain: List[Block] = []
-        self.pending_transactions: List[dict] = []
-        self.chain_state: Dict[str, Any] = {"registered_assets": {}}
-        
-        self._init_db()
-        self._load_chain()
-        
-        if not self.chain:
-            self._create_genesis_block()
+@app.route("/login")
+@app.route("/login.html")
+def login_page():
+    return send_from_directory(BASE_DIR, "login.html")
 
-    def _init_db(self):
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS blocks (
-                block_index INTEGER PRIMARY KEY,
-                block_hash TEXT UNIQUE NOT NULL,
-                block_data TEXT NOT NULL
-            )
-        """)
-        
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS assets (
-                asset_id TEXT PRIMARY KEY,
-                asset_name TEXT NOT NULL,
-                category TEXT,
-                department TEXT,
-                asset_value REAL,
-                owner TEXT,
-                status TEXT,
-                registration_date TEXT,
-                block_index INTEGER,
-                block_hash TEXT
-            )
-        """)
-        
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS transactions (
-                tx_id TEXT PRIMARY KEY,
-                action TEXT,
-                asset_id TEXT,
-                actor TEXT,
-                block_index INTEGER,
-                block_hash TEXT,
-                payload TEXT,
-                created_at TEXT
-            )
-        """)
-        
-        conn.commit()
-        conn.close()
+@app.route("/dashboard")
+@app.route("/index.html")
+def dashboard_page():
+    return send_from_directory(BASE_DIR, "index.html")
 
-    def _persist_block(self, block: Block):
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        
-        c.execute(
-            "INSERT OR REPLACE INTO blocks (block_index, block_hash, block_data) VALUES (?, ?, ?)",
-            (block.index, block.hash, json.dumps(block.to_dict()))
+@app.route("/verify")
+@app.route("/verify.html")
+def verify_page():
+    return send_from_directory(BASE_DIR, "verify.html")
+
+# ─────────────────────────────────────────────────────────
+#  USER / SESSION DATABASE INITIALIZATION
+# ─────────────────────────────────────────────────────────
+
+def init_user_db():
+    """Initializes the database tables for users, sessions, and audit logs."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            user_id TEXT PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            full_name TEXT,
+            role TEXT DEFAULT 'viewer',
+            department TEXT,
+            active INTEGER DEFAULT 1,
+            created_at TEXT
         )
-        
-        for tx in block.transactions:
-            tx_id = tx.get("tx_id", str(uuid.uuid4()))
-            action = tx.get("action")
-            payload = tx.get("payload", {})
-            asset_id = payload.get("asset_id", "")
-            actor = tx.get("actor", "system")
-            created_at = tx.get("timestamp", datetime.now(timezone.utc).isoformat())
+    """)
+    
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS sessions (
+            token TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            created_at TEXT,
+            expires_at TEXT
+        )
+    """)
+    
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            log_id TEXT PRIMARY KEY,
+            user_id TEXT,
+            action TEXT,
+            detail TEXT,
+            ip_address TEXT,
+            created_at TEXT
+        )
+    """)
 
-            c.execute("""
-                INSERT OR REPLACE INTO transactions (tx_id, action, asset_id, actor, block_index, block_hash, payload, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (tx_id, action, asset_id, actor, block.index, block.hash, json.dumps(payload), created_at))
-
-            if action == "REGISTER_ASSET":
-                c.execute("""
-                    INSERT OR REPLACE INTO assets 
-                    (asset_id, asset_name, category, department, asset_value, owner, status, registration_date, block_index, block_hash)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    payload.get("asset_id"), payload.get("asset_name"), payload.get("category"),
-                    payload.get("department"), payload.get("asset_value"), payload.get("owner"),
-                    payload.get("status"), block.to_dict()["timestamp_human"], block.index, block.hash
-                ))
-            elif action == "TRANSFER_ASSET":
-                c.execute("""
-                    UPDATE assets SET owner = ?, status = 'Transferred', block_hash = ?
-                    WHERE asset_id = ?
-                """, (payload.get("to_owner"), block.hash, payload.get("asset_id")))
-
-        conn.commit()
-        conn.close()
-
-    def _load_chain(self):
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        c.execute("SELECT block_data FROM blocks ORDER BY block_index ASC")
-        rows = c.fetchall()
-        conn.close()
-
-        for (data_str,) in rows:
-            data = json.loads(data_str)
-            b = Block.__new__(Block)
-            b.index = data["index"]
-            b.timestamp = data["timestamp"]
-            b.transactions = data["transactions"]
-            b.previous_hash = data["previous_hash"]
-            b.merkle_root = data["merkle_root"]
-            b.nonce = data["nonce"]
-            b.mined_by = data.get("mined_by", "system")
-            b.hash = data["hash"]
-            self.chain.append(b)
-            self._update_chain_state(b)
-
-    def _update_chain_state(self, block: Block):
-        for tx in block.transactions:
-            action = tx.get("action")
-            payload = tx.get("payload", {})
+    # Seed default government users if the table is empty
+    c.execute("SELECT COUNT(*) FROM users")
+    if c.fetchone()[0] == 0:
+        default_users = [
+            ("USR-001", "admin",     _hash_pw("Admin@2025!"),  "System Administrator",     "admin",    "ICT Department"),
+            ("USR-002", "auditor1",  _hash_pw("Audit@2025!"),  "Bello Musa (State Auditor)","auditor",  "Audit Department"),
+            ("USR-003", "assetmgr1", _hash_pw("Asset@2025!"),  "Fatima Abdullahi",          "manager",  "Finance & Assets"),
+            ("USR-004", "viewer1",   _hash_pw("View@2025!"),   "Ibrahim Sule",              "viewer",   "Ministry of Works"),
+        ]
+        now = datetime.now(timezone.utc).isoformat()
+        for user_data in default_users:
+            c.execute(
+                "INSERT INTO users (user_id, username, password, full_name, role, department, created_at) VALUES (?,?,?,?,?,?,?)", 
+                (*user_data, now)
+            )
             
-            if action == "REGISTER_ASSET":
-                self.chain_state["registered_assets"][payload["asset_id"]] = dict(payload)
-            elif action == "TRANSFER_ASSET":
-                aid = payload.get("asset_id")
-                if aid in self.chain_state["registered_assets"]:
-                    self.chain_state["registered_assets"][aid]["owner"] = payload.get("to_owner")
-                    self.chain_state["registered_assets"][aid]["status"] = "Transferred"
+    conn.commit()
+    conn.close()
 
-    def _create_genesis_block(self):
-        genesis_tx = {
-            "tx_id": "GENESIS-TX-001",
-            "action": "GENESIS",
-            "actor": "SYSTEM-CORE",
-            "payload": {
-                "message": "Blockchain Initialized — Jigawa State Asset Registry",
-                "version": "1.0.0",
-                "network": "JIGAWA-MAINNET",
-                "jurisdiction": "Jigawa State, Federal Republic of Nigeria"
-            },
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        genesis = Block(index=0, transactions=[genesis_tx], previous_hash="0" * 64, mined_by="GENESIS")
-        self.chain.append(genesis)
-        self._persist_block(genesis)
+def _hash_pw(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
 
-    def execute_transaction(self, action: str, payload: dict, actor: str) -> dict:
-        contract_cls = self.CONTRACTS.get(action)
-        if not contract_cls:
-            return {"success": False, "error": f"Unknown contract action: {action}"}
-            
-        result = contract_cls.execute(action, payload, self.chain_state)
-        if not result["success"]:
-            return result
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
-        tx = {
-            "tx_id": f"TX-{uuid.uuid4().hex[:12].upper()}",
-            "action": action,
-            "actor": actor,
-            "payload": payload,
-            "contract_result": result,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "status": "pending"
-        }
-        
-        self.pending_transactions.append(tx)
-        return {"success": True, "tx_id": tx["tx_id"], "message": "Transaction added to mempool", "contract": result}
+# ─────────────────────────────────────────────────────────
+#  AUTH HELPERS
+# ─────────────────────────────────────────────────────────
 
-    def mine_block(self, miner: str = "admin") -> Optional[Block]:
-        if not self.pending_transactions:
+def create_session(user_id: str) -> str:
+    token = secrets.token_hex(32)
+    now = datetime.now(timezone.utc)
+    expires = (now + timedelta(hours=SESSION_EXPIRY_HOURS)).isoformat()
+    
+    conn = get_db()
+    conn.execute("INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?,?,?,?)",
+                 (token, user_id, now.isoformat(), expires))
+    conn.commit()
+    conn.close()
+    return token
+
+def get_current_user(token: str) -> dict | None:
+    conn = get_db()
+    row = conn.execute("""
+        SELECT u.*, s.expires_at 
+        FROM users u 
+        JOIN sessions s ON u.user_id = s.user_id 
+        WHERE s.token = ? AND u.active = 1
+    """, (token,)).fetchone()
+    conn.close()
+    
+    if not row: 
+        return None
+    
+    user = dict(row)
+    try:
+        exp = datetime.fromisoformat(user["expires_at"])
+        if exp.tzinfo is None: 
+            exp = exp.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > exp: 
             return None
-            
-        txs = list(self.pending_transactions)
-        self.pending_transactions = []
+    except Exception:
+        return None
         
-        new_block = Block(
-            index=len(self.chain),
-            transactions=txs,
-            previous_hash=self.chain[-1].hash,
-            mined_by=miner
-        )
-        
-        self.chain.append(new_block)
-        self._update_chain_state(new_block)
-        self._persist_block(new_block)
-        return new_block
+    return user
 
-    def is_chain_valid(self) -> dict:
-        issues = []
-        for i in range(1, len(self.chain)):
-            current = self.chain[i]
-            previous = self.chain[i - 1]
-            
-            if current.previous_hash != previous.hash:
-                issues.append(f"Block {i}: previous_hash mismatch")
+def require_auth(*roles):
+    """Decorator to enforce JWT-like Session authentication and RBAC."""
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            auth_header = request.headers.get("Authorization", "")
+            if not auth_header.startswith("Bearer "):
+                return jsonify({"error": "Authentication required. Bearer token missing."}), 401
                 
-            recomputed_full = hashlib.sha256(json.dumps({
-                "index": current.index,
-                "timestamp": current.timestamp,
-                "transactions": current.transactions,
-                "previous_hash": current.previous_hash,
-                "merkle_root": current.merkle_root,
-                "nonce": current.nonce,
-                "mined_by": current.mined_by
-            }, sort_keys=True).encode()).hexdigest()
+            token = auth_header.split(" ", 1)[1]
+            user = get_current_user(token)
             
-            if recomputed_full != current.hash:
-                issues.append(f"Block {i}: hash tampered")
+            if not user:
+                return jsonify({"error": "Invalid or expired session. Please log in again."}), 401
                 
-        return {
-            "valid": len(issues) == 0,
-            "chain_length": len(self.chain),
-            "issues": issues,
-            "checked_at": datetime.now(timezone.utc).isoformat()
-        }
-
-    def get_asset_history(self, asset_id: str) -> List[dict]:
-        history = []
-        for block in self.chain:
-            for tx in block.transactions:
-                if tx.get("payload", {}).get("asset_id") == asset_id:
-                    history.append({
-                        **tx,
-                        "block_index": block.index,
-                        "block_hash": block.hash,
-                        "block_timestamp": block.to_dict()["timestamp_human"]
-                    })
-        return history
-
-    def get_chain_stats(self) -> dict:
-        total_tx = sum(len(b.transactions) for b in self.chain)
-        asset_count = len(self.chain_state.get("registered_assets", {}))
-        
-        return {
-            "total_blocks": len(self.chain),
-            "total_transactions": total_tx,
-            "pending_transactions": len(self.pending_transactions),
-            "registered_assets": asset_count,
-            "latest_block_hash": self.chain[-1].hash if self.chain else None,
-            "network": "JIGAWA-MAINNET",
-            "consensus": f"Proof-of-Work (Difficulty={Block.DIFFICULTY})"
-        }
-
-    def get_full_chain(self) -> List[dict]:
-        return [b.to_dict() for b in self.chain]
-
-    def get_all_assets_from_db(self, filters: dict = None) -> List[dict]:
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        
-        query = "SELECT * FROM assets WHERE 1=1"
-        params = []
-        
-        if filters:
-            if filters.get("category"):
-                query += " AND category = ?"
-                params.append(filters["category"])
-            if filters.get("department"):
-                query += " AND department LIKE ?"
-                params.append(f"%{filters['department']}%")
-            if filters.get("status"):
-                query += " AND status = ?"
-                params.append(filters["status"])
-            if filters.get("search"):
-                query += " AND (asset_name LIKE ? OR asset_id LIKE ?)"
-                params += [f"%{filters['search']}%", f"%{filters['search']}%"]
+            if roles and user["role"] not in roles:
+                return jsonify({"error": f"Access denied. Required roles: {list(roles)}"}), 403
                 
-        query += " ORDER BY registration_date DESC"
-        
-        c.execute(query, params)
-        rows = [dict(r) for r in c.fetchall()]
+            g.current_user = user
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator
+
+def log_action(action: str, detail: str = ""):
+    """Records user actions in the immutable audit log table."""
+    try:
+        user_id = getattr(g, "current_user", {}).get("user_id", "anonymous")
+        conn = get_db()
+        conn.execute("INSERT INTO audit_logs (log_id, user_id, action, detail, ip_address, created_at) VALUES (?,?,?,?,?,?)",
+                     (str(uuid.uuid4()), user_id, action, detail, request.remote_addr, datetime.now(timezone.utc).isoformat()))
+        conn.commit()
         conn.close()
-        return rows
+    except Exception as e:
+        print(f"Failed to log action: {e}")
 
-    def get_dashboard_stats(self) -> dict:
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        
-        c.execute("SELECT COUNT(*) FROM assets")
-        total_assets = c.fetchone()[0]
-        
-        c.execute("SELECT SUM(asset_value) FROM assets")
-        total_value = c.fetchone()[0] or 0
-        
-        c.execute("SELECT category, COUNT(*) as cnt FROM assets GROUP BY category")
-        by_category = [{"category": r[0], "count": r[1]} for r in c.fetchall()]
-        
-        c.execute("SELECT department, COUNT(*) as cnt FROM assets GROUP BY department ORDER BY cnt DESC LIMIT 10")
-        by_dept = [{"department": r[0], "count": r[1]} for r in c.fetchall()]
-        
-        c.execute("SELECT status, COUNT(*) as cnt FROM assets GROUP BY status")
-        by_status = [{"status": r[0], "count": r[1]} for r in c.fetchall()]
-        
-        c.execute("SELECT COUNT(*) FROM transactions")
-        total_tx = c.fetchone()[0]
-        
-        conn.close()
-        return {
-            "total_assets": total_assets,
-            "total_value": total_value,
-            "total_transactions": total_tx,
-            "total_blocks": len(self.chain),
-            "by_category": by_category,
-            "by_department": by_dept,
-            "by_status": by_status,
-            "chain_valid": self.is_chain_valid()["valid"]
+# ─────────────────────────────────────────────────────────
+#  API ROUTES — AUTHENTICATION
+# ─────────────────────────────────────────────────────────
+
+@app.route("/api/auth/login", methods=["POST"])
+def login():
+    data = request.get_json(silent=True) or {}
+    username = data.get("username", "").strip().lower()
+    password = data.get("password", "")
+
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
+
+    conn = get_db()
+    user = conn.execute("SELECT * FROM users WHERE username=? AND password=? AND active=1",
+                        (username, _hash_pw(password))).fetchone()
+    conn.close()
+
+    if not user:
+        return jsonify({"error": "Invalid credentials provided."}), 401
+
+    user = dict(user)
+    token = create_session(user["user_id"])
+    log_action("LOGIN", f"User '{username}' established a secure session.")
+
+    return jsonify({
+        "token": token,
+        "user": {
+            "user_id": user["user_id"],
+            "username": user["username"],
+            "full_name": user["full_name"],
+            "role": user["role"],
+            "department": user["department"]
         }
+    })
+
+@app.route("/api/auth/logout", methods=["POST"])
+def logout():
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header.split(" ", 1)[1]
+        conn = get_db()
+        conn.execute("DELETE FROM sessions WHERE token=?", (token,))
+        conn.commit()
+        conn.close()
+    return jsonify({"message": "Session terminated successfully."})
+
+# ─────────────────────────────────────────────────────────
+#  API ROUTES — DASHBOARD & ASSETS
+# ─────────────────────────────────────────────────────────
+
+@app.route("/api/dashboard", methods=["GET"])
+@require_auth()
+def dashboard():
+    bc = get_blockchain(DB_PATH)
+    return jsonify(bc.get_dashboard_stats())
+
+@app.route("/api/assets/register", methods=["POST"])
+@require_auth("admin", "manager")
+def register_asset():
+    data = request.get_json(silent=True) or {}
+    if not data.get("asset_id"):
+        data["asset_id"] = f"JSG-{uuid.uuid4().hex[:8].upper()}"
+
+    bc = get_blockchain(DB_PATH)
+    result = bc.execute_transaction(action="REGISTER_ASSET", payload=data, actor=g.current_user["username"])
+    
+    if not result["success"]:
+        return jsonify(result), 400
+        
+    block = bc.mine_block(miner=g.current_user["username"])
+    log_action("REGISTER_ASSET", f"Asset {data.get('asset_id')} registered by {g.current_user['username']}")
+    
+    return jsonify({
+        "success": True,
+        "asset_id": data["asset_id"],
+        "tx_id": result["tx_id"],
+        "block_index": block.index if block else None,
+        "block_hash": block.hash if block else None,
+        "message": f"Asset successfully registered in block #{block.index if block else '?'}"
+    }), 201
+
+@app.route("/api/assets", methods=["GET"])
+@require_auth()
+def list_assets():
+    bc = get_blockchain(DB_PATH)
+    filters = {}
+    
+    if request.args.get("category"): filters["category"] = request.args.get("category")
+    if request.args.get("department"): filters["department"] = request.args.get("department")
+    if request.args.get("status"): filters["status"] = request.args.get("status")
+    if request.args.get("search"): filters["search"] = request.args.get("search")
+        
+    assets = bc.get_all_assets_from_db(filters)
+    return jsonify({"assets": assets, "total": len(assets)})
+
+@app.route("/api/assets/<asset_id>", methods=["GET"])
+@require_auth()
+def get_asset(asset_id):
+    bc = get_blockchain(DB_PATH)
+    assets = bc.get_all_assets_from_db({"search": asset_id})
+    asset = next((a for a in assets if a["asset_id"] == asset_id), None)
+    
+    if not asset:
+        return jsonify({"error": "Asset could not be found in the registry."}), 404
+        
+    history = bc.get_asset_history(asset_id)
+    return jsonify({"asset": asset, "history": history})
+
+@app.route("/api/assets/<asset_id>/history", methods=["GET"])
+@require_auth()
+def get_asset_history(asset_id):
+    bc = get_blockchain(DB_PATH)
+    history = bc.get_asset_history(asset_id)
+    return jsonify({"asset_id": asset_id, "history": history})
+
+@app.route("/api/assets/transfer", methods=["POST"])
+@require_auth("admin", "manager")
+def transfer_asset():
+    data = request.get_json(silent=True) or {}
+    data["authorized_by"] = g.current_user["username"]
+    
+    bc = get_blockchain(DB_PATH)
+    result = bc.execute_transaction(action="TRANSFER_ASSET", payload=data, actor=g.current_user["username"])
+    
+    if not result["success"]:
+        return jsonify(result), 400
+        
+    block = bc.mine_block(miner=g.current_user["username"])
+    log_action("TRANSFER_ASSET", f"Asset {data.get('asset_id')} transferred to {data.get('to_owner')}")
+    
+    return jsonify({
+        "success": True,
+        "tx_id": result["tx_id"],
+        "block_index": block.index if block else None,
+        "block_hash": block.hash if block else None,
+        "message": "Asset transfer contract successfully recorded."
+    })
+
+@app.route("/api/assets/audit", methods=["POST"])
+@require_auth("admin", "auditor", "manager")
+def audit_asset():
+    data = request.get_json(silent=True) or {}
+    data["auditor"] = g.current_user["username"]
+    
+    bc = get_blockchain(DB_PATH)
+    result = bc.execute_transaction(action="AUDIT_ASSET", payload=data, actor=g.current_user["username"])
+    
+    if not result["success"]:
+        return jsonify(result), 400
+        
+    block = bc.mine_block(miner=g.current_user["username"])
+    log_action("AUDIT_ASSET", f"Asset {data.get('asset_id')} audited by {g.current_user['username']}")
+    
+    return jsonify({
+        "success": True,
+        "tx_id": result["tx_id"],
+        "audit_id": result["contract"].get("audit_id"),
+        "block_index": block.index if block else None,
+        "block_hash": block.hash if block else None,
+        "message": "Audit findings officially recorded."
+    })
 
 
 # ─────────────────────────────────────────────────────────
-#  SINGLETON INSTANCE
+#  API ROUTES — BLOCKCHAIN CORE & REPORTS
 # ─────────────────────────────────────────────────────────
 
-_blockchain_instance: Optional[JigawaBlockchain] = None
+@app.route("/api/blockchain/mine", methods=["POST"])
+@require_auth("admin")
+def mine():
+    bc = get_blockchain(DB_PATH)
+    block = bc.mine_block(miner=g.current_user["username"])
+    
+    if not block:
+        return jsonify({"message": "No pending transactions in the mempool."}), 200
+        
+    log_action("MINE_BLOCK", f"Block #{block.index} successfully mined by {g.current_user['username']}")
+    return jsonify({"success": True, "block": block.to_dict()})
 
-def get_blockchain(db_path: str = "jigawa_registry.db") -> JigawaBlockchain:
-    global _blockchain_instance
-    if _blockchain_instance is None:
-        _blockchain_instance = JigawaBlockchain(db_path)
-    return _blockchain_instance
+@app.route("/api/blockchain/chain", methods=["GET"])
+@require_auth()
+def get_chain():
+    bc = get_blockchain(DB_PATH)
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 10))
+    
+    full_chain = list(reversed(bc.get_full_chain()))
+    total = len(full_chain)
+    
+    start = (page - 1) * per_page
+    end = start + per_page
+    
+    return jsonify({
+        "chain": full_chain[start:end],
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": (total + per_page - 1) // per_page
+    })
+
+@app.route("/api/blockchain/validate", methods=["GET"])
+@require_auth()
+def validate_chain():
+    bc = get_blockchain(DB_PATH)
+    return jsonify(bc.is_chain_valid())
+
+@app.route("/api/blockchain/stats", methods=["GET"])
+@require_auth()
+def blockchain_stats():
+    bc = get_blockchain(DB_PATH)
+    return jsonify(bc.get_chain_stats())
+
+@app.route("/api/reports/export", methods=["GET"])
+@require_auth("admin", "auditor", "manager")
+def export_report():
+    bc = get_blockchain(DB_PATH)
+    report = {
+        "report_title": "Jigawa State Asset Registry — Official Cryptographic Report",
+        "jurisdiction": "Jigawa State, Federal Republic of Nigeria",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_by": g.current_user["full_name"],
+        "blockchain_status": "VALID" if bc.get_dashboard_stats()["chain_valid"] else "INVALID",
+        "summary": bc.get_dashboard_stats(),
+        "assets": bc.get_all_assets_from_db()
+    }
+    
+    log_action("EXPORT_REPORT", f"Official report exported by {g.current_user['username']}")
+    
+    response = make_response(json.dumps(report, indent=2))
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Content-Disposition"] = f'attachment; filename="jigawa_registry_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json"'
+    return response
+
+@app.route("/api/reports/audit-log", methods=["GET"])
+@require_auth("admin", "auditor")
+def get_audit_log():
+    conn = get_db()
+    logs = conn.execute("""
+        SELECT al.*, u.full_name 
+        FROM audit_logs al 
+        LEFT JOIN users u ON al.user_id = u.user_id 
+        ORDER BY al.created_at DESC 
+        LIMIT 200
+    """).fetchall()
+    conn.close()
+    return jsonify({"logs": [dict(r) for r in logs]})
+
+
+# ─────────────────────────────────────────────────────────
+#  HEALTH CHECK
+# ─────────────────────────────────────────────────────────
+
+@app.route("/api/health", methods=["GET"])
+def health():
+    return jsonify({
+        "status": "online",
+        "system": "Jigawa State Blockchain Asset Registry",
+        "jurisdiction": "Jigawa State",
+        "version": "1.1.0",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+
+
+# ─────────────────────────────────────────────────────────
+#  INITIALIZATION (CRITICAL FOR GUNICORN / RAILWAY)
+# ─────────────────────────────────────────────────────────
+
+# When deploying to Railway using Gunicorn, the `if __name__ == "__main__":` block is skipped.
+# We must initialize the database and blockchain globally so it runs upon worker startup.
+with app.app_context():
+    try:
+        init_user_db()
+        get_blockchain(DB_PATH)
+        print(f"[*] App Initialized Successfully. Using Database at: {DB_PATH}")
+    except Exception as e:
+        print(f"[!] Critical Initialization Error: {e}")
+
+# ─────────────────────────────────────────────────────────
+#  LOCAL ENTRY POINT (FLASK DEVELOPMENT SERVER)
+# ─────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    # Get port from environment variables, fallback to 5000 (Required for Railway)
+    port = int(os.environ.get("PORT", 5000))
+    
+    bc = get_blockchain(DB_PATH)
+    print("=" * 60)
+    print("  Jigawa State Blockchain Asset Registry")
+    print("  Jigawa State Government System")
+    print("=" * 60)
+    stats = bc.get_chain_stats()
+    print(f"  Blocks:       {stats['total_blocks']}")
+    print(f"  Assets:       {stats['registered_assets']}")
+    print(f"  Transactions: {stats['total_transactions']}")
+    print(f"  Network:      {stats['network']}")
+    print(f"  Database:     {DB_PATH}")
+    print("=" * 60)
+    print(f"\n  System running locally at: http://localhost:{port}")
+    print("  Default credentials: admin / Admin@2025!")
+    print("=" * 60 + "\n")
+    
+    app.run(host="0.0.0.0", port=port, debug=False)
