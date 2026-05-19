@@ -786,7 +786,7 @@
 
     <script type="text/babel">
         const { useState, useEffect, useCallback, useRef } = React;
-        const FLASK_API_BASE = 'http://localhost:5000/api';
+        const FLASK_API_BASE = window.location.origin + '/api';
 
         // ── Security & Authentication API ────────────────────────────
         function fetchJwtToken() {
@@ -803,30 +803,36 @@
         }
 
         async function performApiRequest(endpointPath, httpMethod = 'GET', requestBody = null) {
-            const fetchConfig = {
-                method: httpMethod,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + fetchJwtToken()
-                }
-            };
-            
-            if (requestBody) {
-                fetchConfig.body = JSON.stringify(requestBody);
-            }
-            
-            const serverResponse = await fetch(FLASK_API_BASE + endpointPath, fetchConfig);
-            
-            if (serverResponse.status === 401) {
-                // Token has expired or is invalid. Redirect to login.
-                localStorage.clear();
-                window.location.href = '/';
-                return null;
-            }
-            
-            return serverResponse.json();
+    const fetchConfig = {
+        method: httpMethod,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + fetchJwtToken()
         }
+    };
+    
+    if (requestBody) {
+        fetchConfig.body = JSON.stringify(requestBody);
+    }
 
+    try {
+        const serverResponse = await fetch(FLASK_API_BASE + endpointPath, fetchConfig);
+        
+        if (serverResponse.status === 401) {
+            localStorage.clear();
+            window.location.href = '/';
+            return null;
+        }
+        
+        return await serverResponse.json();
+    } catch (error) {
+        console.error("API Connection Error:", error);
+        return { 
+            success: false, 
+            error: "Cannot establish connection to server. Please refresh the page." 
+        };
+    }
+}
         // ── Formatting Service Functions ──────────────────────────────
         function formatNaira(numericalValue) {
             return 'NGN ' + Number(numericalValue || 0).toLocaleString('en-NG', {
