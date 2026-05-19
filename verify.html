@@ -596,7 +596,7 @@
         const { useState, useEffect, useRef } = React;
         
         // Define base route for internal API
-        const BACKEND_API_URL = 'http://localhost:5000/api';
+       const BACKEND_API_URL = window.location.origin + '/api';
 
         // ── Component: Dynamic Lucide Icon Renderer ─────────────────
         function DynamicIcon({ iconName, classNameText = "", sizeValue = 20, inlineStyles = {} }) {
