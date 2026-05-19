@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Jigawa State Asset Registry</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --green:#008751;--green-light:#10B981;--green-dark:#005C37;
+    --gold:#D4AF37;--gold-light:#FDE047;--gold-dark:#B49020;
+    --white:#fff;--gray-50:#F8FAFC;--gray-100:#F1F5F9;
+    --gray-200:#E2E8F0;--gray-700:#334155;--gray-900:#0F172A;
+    --red:#DC2626;--shadow:0 20px 60px rgba(0,0,0,0.15);
+  }
+  body{
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    background:var(--gray-50);
+    display:flex;flex-direction:column;
+  }
+
+  /* ── Header ── */
+  .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--gray-200);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.2rem 4rem;
+      position: sticky; top: 0; z-index: 1000;
+  }
+  .logo-area { display: flex; align-items: center; gap: 1rem; }
+  .seal {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--green), var(--green-dark));
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      color: var(--white); border: 2px solid var(--gold);
+  }
+  .logo-text h1 { font-size: 1.25rem; font-weight: 800; color: var(--gray-900); letter-spacing: -0.02em; }
+  .logo-text p { font-size: 0.75rem; color: var(--gray-700); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .nav-links { display: flex; gap: 2rem; align-items: center; }
+  .nav-links a { text-decoration: none; color: var(--gray-900); font-weight: 600; font-size: 0.95rem; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--green); }
+  .btn-outline {
+      padding: 0.6rem 1.5rem; border: 2px solid var(--green);
+      color: var(--green) !important; border-radius: 8px; font-weight: 700;
+      text-decoration: none; transition: all 0.2s;
+  }
+  .btn-outline:hover { background: var(--green); color: var(--white) !important; }
+
+  /* ── Hero Section ── */
+  .hero {
+      padding: 6rem 4rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 4rem;
+      flex: 1; position: relative; overflow: hidden;
+  }
+  .hero::before {
+      content: ''; position: absolute; inset: 0; opacity: 0.03; pointer-events: none;
+      background-image: radial-gradient(var(--green-dark) 1px, transparent 1px);
+      background-size: 30px 30px;
+  }
+  .hero-content { flex: 1; max-width: 600px; position: relative; z-index: 2; }
+  .badge-top {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(0, 135, 81, 0.1); color: var(--green-dark);
+      padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 700;
+      margin-bottom: 1.5rem; border: 1px solid rgba(0, 135, 81, 0.2);
+  }
+  .hero h2 { font-size: 3.5rem; font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; color: var(--gray-900); letter-spacing: -0.03em; }
+  .hero h2 span { color: var(--green); }
+  .hero p { font-size: 1.15rem; color: var(--gray-700); line-height: 1.6; margin-bottom: 2.5rem; }
+  
+  /* ── Carousel ── */
+  .features-carousel {
+      display: flex; gap: 1.5rem; overflow-x: auto; padding-bottom: 1rem;
+      scrollbar-width: none;
+  }
+  .features-carousel::-webkit-scrollbar { display: none; }
+  .feature-card {
+      background: var(--white); padding: 1.5rem; border-radius: 16px; min-width: 240px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid var(--gray-200);
+  }
+  .fc-icon {
+      width: 48px; height: 48px; border-radius: 12px; margin-bottom: 1rem;
+      background: rgba(0, 135, 81, 0.1); color: var(--green);
+      display: flex; align-items: center; justify-content: center;
+  }
+  .fc-title { font-weight: 700; font-size: 1.05rem; color: var(--gray-900); margin-bottom: 0.5rem; }
+  .fc-desc { font-size: 0.85rem; color: var(--gray-700); line-height: 1.5; }
+
+  /* ── Login Box ── */
+  .login-wrapper { flex: 0.8; max-width: 450px; position: relative; z-index: 2; }
+  .login-box{
+    background:var(--white);padding:3rem;border-radius:24px;
+    box-shadow:var(--shadow);border:1px solid var(--gray-200);
+  }
+  .login-head{text-align:center;margin-bottom:2rem}
+  .login-head h2{color:var(--gray-900);font-size:1.6rem;font-weight:800;letter-spacing:-0.03em}
+  .login-head p{color:var(--gray-700);font-size:0.9rem;margin-top:0.4rem;font-weight:500}
+
+  .form-group{margin-bottom:1.5rem}
+  .form-group label{display:block;margin-bottom:0.5rem;font-size:0.85rem;font-weight:600;color:var(--gray-900)}
+  .input-wrap { position: relative; }
+  .input-wrap i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--gray-700); width: 18px; height: 18px; }
+  .form-group input{
+    width:100%;padding:1rem 1rem 1rem 3rem;border:2px solid var(--gray-200);
+    border-radius:12px;font-size:1rem;font-family:inherit;
+    transition:all 0.2s;background:var(--gray-50); outline: none;
+  }
+  .form-group input:focus{border-color:var(--green);background:var(--white); box-shadow: 0 0 0 4px rgba(0, 135, 81, 0.1);}
+
+  .btn{
+    width:100%;padding:1rem;background:var(--green);color:var(--white);
+    border:none;border-radius:12px;font-size:1rem;font-weight:700;
+    cursor:pointer;transition:all 0.2s;font-family:inherit;
+    display:flex;align-items:center;justify-content:center;gap:0.5rem;
+  }
+  .btn:hover{background:var(--green-dark);transform:translateY(-2px)}
+  .btn:disabled{opacity:0.7;cursor:not-allowed;transform:none}
+
+  .alert{
+    padding:1rem;border-radius:10px;margin-bottom:1.5rem;
+    font-size:0.85rem;font-weight:600;display:none; text-align: center;
+  }
+  .alert.error{background:#FEF2F2;color:var(--red);border:1px solid #FECACA}
+  .alert.success{background:#F0FDF4;color:var(--green-dark);border:1px solid #BBF7D0}
+
+  .demo-creds{
+    margin-top:2rem;padding-top:1.5rem;border-top:1px dashed var(--gray-200);
+  }
+  .demo-creds h4{font-size:0.75rem;color:var(--gray-700);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:1rem;text-align:center}
+  .cred-grid{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;}
+  .cred-btn{
+    background:var(--gray-100);border:1px solid var(--gray-200);
+    padding:0.4rem 0.8rem;border-radius:50px;font-size:0.75rem;font-weight:600;
+    color:var(--gray-900);cursor:pointer;transition:all 0.2s;
+  }
+  .cred-btn:hover{background:var(--green);color:var(--white);border-color:var(--green)}
+
+  .spin{animation:spin 1s linear infinite;display:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── Footer ── */
+  .footer {
+      background: var(--gray-900); color: var(--white); padding: 4rem 4rem 2rem;
+  }
+  .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 3rem; margin-bottom: 3rem; }
+  .footer-col h4 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--gold); }
+  .footer-col p, .footer-col a { color: #94A3B8; font-size: 0.9rem; line-height: 1.6; text-decoration: none; display: block; margin-bottom: 0.5rem; }
+  .footer-col a:hover { color: var(--white); }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #64748B; }
+
+  @media(max-width:1024px){
+    .hero{flex-direction:column;padding:4rem 2rem;text-align:center;}
+    .features-carousel{justify-content:center;flex-wrap:wrap;}
+    .login-wrapper{width:100%;max-width:500px;}
+    .header { padding: 1rem 2rem; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="header">
+      <div class="logo-area">
+          <div class="seal"><i data-lucide="shield-check"></i></div>
+          <div class="logo-text">
+              <h1>Jigawa State Registry</h1>
+              <p>Public Asset Ledger</p>
+          </div>
+      </div>
+      <div class="nav-links">
+          <a href="/verify">Public Verification</a>
+          <a href="#login" class="btn-outline">Staff Portal</a>
+      </div>
+  </header>
+
+  <section class="hero">
+      <div class="hero-content">
+          <div class="badge-top"><i data-lucide="link" style="width: 14px; height: 14px;"></i> Secured by JIGAWA-MAINNET</div>
+          <h2>Immutable Transparency for <span>Public Assets</span>.</h2>
+          <p>The Jigawa State Blockchain Registry ensures ultimate accountability. Track, verify, and audit government assets with cryptographic certainty. Zero tampering, full trust.</p>
+
+          <div class="features-carousel">
+              <div class="feature-card">
+                  <div class="fc-icon"><i data-lucide="database"></i></div>
+                  <div class="fc-title">Immutable Ledger</div>
+                  <div class="fc-desc">Asset registration is permanently hashed onto the state blockchain.</div>
+              </div>
+              <div class="feature-card">
+                  <div class="fc-icon"><i data-lucide="fingerprint"></i></div>
+                  <div class="fc-title">Tamper-Proof Audits</div>
+                  <div class="fc-desc">Cryptographic validation ensures no historical records are altered.</div>
+              </div>
+              <div class="feature-card">
+                  <div class="fc-icon"><i data-lucide="refresh-cw"></i></div>
+                  <div class="fc-title">Transparent Transfers</div>
+                  <div class="fc-desc">End-to-end visibility of asset ownership transfers.</div>
+              </div>
+          </div>
+      </div>
+
+      <div class="login-wrapper" id="login">
+        <div class="login-box">
+          <div class="login-head">
+            <h2>System Login</h2>
+            <p>Authorized Government Personnel Only</p>
+          </div>
+
+          <div id="alertBox" class="alert"></div>
+
+          <div class="form-group">
+            <label>Username</label>
+            <div class="input-wrap">
+              <i data-lucide="user"></i>
+              <input type="text" id="username" placeholder="Enter username" autocomplete="username">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Password</label>
+            <div class="input-wrap">
+              <i data-lucide="lock"></i>
+              <input type="password" id="password" placeholder="Enter password" autocomplete="current-password">
+            </div>
+          </div>
+
+          <button id="loginBtn" class="btn" onclick="doLogin()">
+            <i data-lucide="loader-2" id="spinner" class="spin"></i>
+            <span id="btnText">Sign In to Registry</span>
+            <i data-lucide="log-in" id="btnIcon"></i>
+          </button>
+
+          <div class="demo-creds">
+            <h4>Demo Accounts</h4>
+            <div class="cred-grid">
+              <button class="cred-btn" onclick="fill('admin','Admin@2025!')">Admin</button>
+              <button class="cred-btn" onclick="fill('auditor1','Audit@2025!')">Auditor</button>
+              <button class="cred-btn" onclick="fill('assetmgr1','Asset@2025!')">Manager</button>
+              <button class="cred-btn" onclick="fill('viewer1','View@2025!')">Viewer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+  </section>
+
+  <footer class="footer">
+      <div class="footer-grid">
+          <div class="footer-col">
+              <div class="seal" style="margin-bottom: 1rem;"><i data-lucide="shield-check"></i></div>
+              <h4 style="color: var(--white); margin-bottom: 0.5rem;">Jigawa State Registry</h4>
+              <p>Ensuring transparency and accountability in public resource management through decentralized ledger technology.</p>
+          </div>
+          <div class="footer-col">
+              <h4>System Integrity</h4>
+              <p><i data-lucide="server" style="width:16px; height:16px; vertical-align: middle;"></i> Network: JIGAWA-MAINNET</p>
+              <p><i data-lucide="cpu" style="width:16px; height:16px; vertical-align: middle;"></i> Consensus: Proof-of-Work</p>
+              <p><i data-lucide="file-key" style="width:16px; height:16px; vertical-align: middle;"></i> Hashing: SHA-256</p>
+          </div>
+      </div>
+      <div class="footer-bottom">
+          <p>&copy; 2026 Jigawa State Government. All Rights Reserved.</p>
+          <p>Secured by Enterprise Blockchain</p>
+      </div>
+  </footer>
+
+<script>
+  lucide.createIcons();
+  const API = 'http://localhost:5000/api';
+
+  function fill(u,p){
+    document.getElementById('username').value=u;
+    document.getElementById('password').value=p;
+  }
+
+  function showAlert(msg,type='error'){
+    const box=document.getElementById('alertBox');
+    box.textContent=msg;
+    box.className='alert '+type;
+    box.style.display='block';
+  }
+
+  async function doLogin(){
+    const username=document.getElementById('username').value.trim();
+    const password=document.getElementById('password').value;
+    if(!username||!password){showAlert('Please enter username and password.');return}
+
+    const btn=document.getElementById('loginBtn');
+    const spinner=document.getElementById('spinner');
+    const btnText=document.getElementById('btnText');
+    const btnIcon=document.getElementById('btnIcon');
+    btn.disabled=true;
+    spinner.style.display='inline-block';
+    btnIcon.style.display='none';
+    btnText.textContent='Authenticating…';
+
+    try{
+      const res=await fetch(API+'/auth/login',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({username,password})
+      });
+      const data=await res.json();
+      if(res.ok){
+        localStorage.setItem('sarauta_token',data.token);
+        localStorage.setItem('sarauta_user',JSON.stringify(data.user));
+        showAlert('Access granted. Redirecting…','success');
+        setTimeout(()=>{window.location.href='/dashboard'},800);
+      } else {
+        showAlert(data.error||'Login failed. Please check your credentials.');
+      }
+    } catch(e){
+      showAlert('Cannot connect to server. Ensure the Flask server is running on port 5000.');
+    } finally{
+      btn.disabled=false;
+      spinner.style.display='none';
+      btnIcon.style.display='inline-block';
+      btnText.textContent='Sign In to Registry';
+    }
+  }
+
+  // Check if already logged in (using original sarauta keys to prevent breakage)
+  if(localStorage.getItem('sarauta_token')){
+    window.location.href='/dashboard';
+  }
+
+  // Enter key
+  document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+</script>
+</body>
+</html>
