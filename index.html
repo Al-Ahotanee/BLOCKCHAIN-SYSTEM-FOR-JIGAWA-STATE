@@ -1,987 +1,2329 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dashboard — Jigawa State Asset Registry</title>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<!-- Lucide Icons -->
-<script src="https://unpkg.com/lucide@latest"></script>
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --green:#008751; --green-l:#10B981; --green-d:#005C37;
-  --gold:#D4AF37; --gold-l:#FDE047;
-  --sidebar-w:260px;
-  --red:#DC2626; --blue:#1D4ED8; --purple:#7C3AED;
-  --gray-50:#F8FAFC; --gray-100:#F1F5F9; --gray-200:#E2E8F0;
-  --gray-500:#64748B; --gray-700:#334155; --gray-900:#0F172A;
-}
-body{font-family:'Inter',sans-serif;background:var(--gray-50);color:var(--gray-900)}
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Management Dashboard — Jigawa State Asset Registry</title>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Chart.js for beautiful graph visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* Professional typography system */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* State Theme Variables */
+            --primary-green: #008751;
+            --light-green: #10B981;
+            --dark-green: #005C37;
+            --primary-gold: #D4AF37;
+            --light-gold: #FDE047;
+            
+            /* Sidebar Settings */
+            --sidebar-width: 260px;
+            
+            /* Action Colors */
+            --alert-red: #DC2626;
+            --info-blue: #1D4ED8;
+            --accent-purple: #7C3AED;
+            
+            /* Base Interface Colors */
+            --bg-canvas: #F8FAFC;
+            --surface-color: #FFFFFF;
+            --slate-50: #F9FAFB;
+            --slate-100: #F1F5F9;
+            --slate-200: #E2E8F0;
+            --slate-500: #64748B;
+            --slate-700: #334155;
+            --slate-900: #0F172A;
+            
+            /* Elevation & Shadows */
+            --shadow-subtle: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-medium: 0 4px 6px -1px rgba(0,0,0,0.05);
+            --shadow-elevated: 0 10px 25px -5px rgba(0,0,0,0.1);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-canvas);
+            color: var(--slate-900);
+        }
 
-/* ── Layout ── */
-.layout{display:flex;min-height:100vh}
-.sidebar{
-  width:var(--sidebar-w);background:var(--gray-900);
-  display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;
-  overflow-y:auto;transition:transform 0.3s;
-}
-.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+        /* ── Application Layout ── */
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar-navigation {
+            width: var(--sidebar-width);
+            background: var(--slate-900);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .main-workspace {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
 
-/* ── Sidebar ── */
-.sb-brand{padding:1.5rem;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0; background: rgba(0,0,0,0.2);}
-.sb-logo{display:flex;align-items:center;gap:1rem}
-.sb-icon{
-  width:42px;height:42px;background:linear-gradient(135deg,var(--green),var(--green-d));
-  border-radius:10px;display:flex;align-items:center;justify-content:center;
-  color:white; flex-shrink:0; border: 1.5px solid rgba(255,255,255,0.2);
-}
-.sb-title{color:white;font-weight:800;font-size:1.05rem;line-height:1.2; letter-spacing:-0.02em;}
-.sb-sub{color:rgba(255,255,255,0.5);font-size:0.7rem;font-weight:600; text-transform: uppercase; letter-spacing:0.05em; margin-top:2px;}
+        /* ── Sidebar Component Styles ── */
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .sidebar-logo-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .sidebar-icon-box {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--surface-color);
+            flex-shrink: 0;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .sidebar-title {
+            color: var(--surface-color);
+            font-weight: 800;
+            font-size: 1.05rem;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+        
+        .sidebar-subtitle {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 2px;
+        }
 
-.sb-nav{padding:1.5rem 0;flex:1}
-.sb-section{padding:0.5rem 1.5rem;font-size:0.7rem;color:var(--gray-500);font-weight:700;text-transform:uppercase;letter-spacing:0.1em; margin-bottom: 0.5rem;}
-.nav-item{
-  display:flex;align-items:center;gap:0.8rem;padding:0.8rem 1.5rem;
-  cursor:pointer;transition:all 0.2s;color:rgba(255,255,255,0.7);
-  font-size:0.9rem;font-weight:500;border:none;background:none;
-  width:100%;text-align:left;border-radius:0; position: relative;
-}
-.nav-item:hover { background:rgba(255,255,255,0.05); color:white; }
-.nav-item.active { background:rgba(0, 135, 81, 0.15); color:white; }
-.nav-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--green); border-radius: 0 4px 4px 0; }
-.nav-icon{width:20px;text-align:center;flex-shrink:0; opacity: 0.8;}
-.nav-item.active .nav-icon { color: var(--green-l); opacity: 1; }
-.nav-badge{
-  margin-left:auto;background:var(--red);color:white;
-  font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:99px;font-weight:700;
-}
+        .navigation-links {
+            padding: 1.5rem 0;
+            flex: 1;
+        }
+        
+        .navigation-category-label {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.7rem;
+            color: var(--slate-500);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .nav-button-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            border-radius: 0;
+            position: relative;
+        }
+        
+        .nav-button-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--surface-color);
+        }
+        
+        .nav-button-item.is-active {
+            background: rgba(0, 135, 81, 0.15);
+            color: var(--surface-color);
+        }
+        
+        .nav-button-item.is-active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-green);
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .nav-button-icon {
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+            opacity: 0.8;
+        }
+        
+        .nav-button-item.is-active .nav-button-icon {
+            color: var(--light-green);
+            opacity: 1;
+        }
+        
+        .alert-indicator-badge {
+            margin-left: auto;
+            background: var(--alert-red);
+            color: var(--surface-color);
+            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 99px;
+            font-weight: 700;
+        }
 
-.sb-user{
-  padding:1.2rem 1.5rem;border-top:1px solid rgba(255,255,255,0.05);
-  display:flex;align-items:center;gap:0.8rem; background: rgba(0,0,0,0.1);
-}
-.sb-avatar{
-  width:38px;height:38px;background:var(--green);border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:700;color:white;font-size:0.9rem;flex-shrink:0; border: 2px solid rgba(255,255,255,0.1);
-}
-.sb-uname{color:white;font-size:0.85rem;font-weight:600}
-.sb-urole{color:var(--gray-500);font-size:0.75rem; text-transform: capitalize;}
-.sb-logout{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--gray-500);transition:color 0.2s}
-.sb-logout:hover{color:white}
+        .user-profile-section {
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .user-avatar-circle {
+            width: 38px;
+            height: 38px;
+            background: var(--primary-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--surface-color);
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .user-name-text {
+            color: var(--surface-color);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .user-role-text {
+            color: var(--slate-500);
+            font-size: 0.75rem;
+            text-transform: capitalize;
+        }
+        
+        .btn-system-logout {
+            margin-left: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--slate-500);
+            transition: color 0.2s ease;
+        }
+        
+        .btn-system-logout:hover {
+            color: var(--surface-color);
+        }
 
-/* ── Topbar ── */
-.topbar{
-  background:#fff;padding:1.2rem 2rem;
-  display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--gray-200); position:sticky;top:0;z-index:50;
-}
-.topbar h2{font-size:1.25rem;font-weight:800;letter-spacing:-0.02em}
-.topbar-right{display:flex;align-items:center;gap:1.5rem}
-.chain-badge{
-  display:flex;align-items:center;gap:0.5rem;
-  background:#F0FDF4;border:1px solid #BBF7D0;border-radius:99px;
-  padding:0.4rem 1rem;font-size:0.8rem;font-weight:700;color:#166534;
-}
-.chain-dot{width:8px;height:8px;border-radius:50%;background:#22C55E;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+        /* ── Topbar Component ── */
+        .workspace-topbar {
+            background: var(--surface-color);
+            padding: 1.2rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--slate-200);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        
+        .workspace-topbar h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        
+        .topbar-control-group {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .system-health-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #F0FDF4;
+            border: 1px solid #BBF7D0;
+            border-radius: 99px;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #166534;
+        }
+        
+        .pulse-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22C55E;
+            animation: animatePulse 1.5s infinite;
+        }
+        
+        @keyframes animatePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
 
-/* ── Content ── */
-.content{padding:2rem;flex:1}
+        /* ── Main Content Area ── */
+        .content-canvas {
+            padding: 2rem;
+            flex: 1;
+        }
 
-/* ── Stats ── */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin-bottom:2rem}
-.stat-card{
-  background:#fff;border-radius:16px;padding:1.5rem;
-  border:1px solid var(--gray-200); border-top: 4px solid transparent;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition:transform 0.2s;
-}
-.stat-card:hover{transform:translateY(-2px)}
-.stat-card.green{border-top-color:var(--green)}
-.stat-card.gold{border-top-color:var(--gold)}
-.stat-card.blue{border-top-color:var(--blue)}
-.stat-card.purple{border-top-color:var(--purple)}
+        /* ── Statistic Cards ── */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: var(--surface-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--slate-200);
+            border-top: 4px solid transparent;
+            box-shadow: var(--shadow-subtle);
+            transition: transform 0.2s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .metric-card.theme-green { border-top-color: var(--primary-green); }
+        .metric-card.theme-gold { border-top-color: var(--primary-gold); }
+        .metric-card.theme-blue { border-top-color: var(--info-blue); }
+        .metric-card.theme-purple { border-top-color: var(--accent-purple); }
 
-.stat-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
-.stat-icon{width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;}
-.green .stat-icon { background: #F0FDF4; color: var(--green); }
-.gold .stat-icon { background: #FEFCE8; color: #CA8A04; }
-.blue .stat-icon { background: #EFF6FF; color: var(--blue); }
-.purple .stat-icon { background: #F5F3FF; color: var(--purple); }
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        
+        .metric-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .theme-green .metric-icon-box { background: #F0FDF4; color: var(--primary-green); }
+        .theme-gold .metric-icon-box { background: #FEFCE8; color: #CA8A04; }
+        .theme-blue .metric-icon-box { background: #EFF6FF; color: var(--info-blue); }
+        .theme-purple .metric-icon-box { background: #F5F3FF; color: var(--accent-purple); }
 
-.stat-val{font-size:2rem;font-weight:800;color:var(--gray-900);line-height:1}
-.stat-label{font-size:0.85rem;color:var(--gray-500);margin-top:0.5rem;font-weight:600}
+        .metric-main-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--slate-900);
+            line-height: 1;
+        }
+        
+        .metric-sub-label {
+            font-size: 0.85rem;
+            color: var(--slate-500);
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
 
-/* ── Cards ── */
-.card{background:#fff;border-radius:16px;border:1px solid var(--gray-200);overflow:hidden;margin-bottom:1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);}
-.card-head{
-  padding:1.2rem 1.5rem;border-bottom:1px solid var(--gray-100);
-  display:flex;align-items:center;justify-content:space-between; background: var(--gray-50);
-}
-.card-head h3{font-size:1.05rem;font-weight:800; display: flex; align-items: center; gap: 0.5rem; color: var(--gray-900);}
-.card-body{padding:1.5rem}
+        /* ── Standard Panel Cards ── */
+        .panel-card {
+            background: var(--surface-color);
+            border-radius: 16px;
+            border: 1px solid var(--slate-200);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-subtle);
+        }
+        
+        .panel-card-header {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid var(--slate-100);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--slate-50);
+        }
+        
+        .panel-card-header h3 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--slate-900);
+        }
+        
+        .panel-card-body {
+            padding: 1.5rem;
+        }
 
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
-@media(max-width:900px){.grid-2{grid-template-columns:1fr}}
+        /* Dual Column Layout */
+        .layout-grid-dual {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        @media(max-width: 900px) {
+            .layout-grid-dual {
+                grid-template-columns: 1fr;
+            }
+        }
 
-/* ── Table ── */
-.tbl-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:0.9rem}
-th{
-  background:var(--gray-50);padding:1rem 1.2rem;text-align:left;
-  font-size:0.75rem;font-weight:700;color:var(--gray-500);
-  text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;
-  border-bottom: 2px solid var(--gray-200);
-}
-td{padding:1rem 1.2rem;border-bottom:1px solid var(--gray-100);vertical-align:middle; color: var(--gray-700);}
-tr:hover td{background:var(--gray-50)}
-.badge{
-  display:inline-flex; align-items: center; justify-content: center; padding:0.3rem 0.8rem;border-radius:50px;
-  font-size:0.75rem;font-weight:700;white-space:nowrap;
-}
-.b-active{background:#F0FDF4;color:#166534; border: 1px solid #BBF7D0;}
-.b-transferred{background:#EFF6FF;color:#1E40AF; border: 1px solid #BFDBFE;}
-.b-inactive{background:#FEF3C7;color:#92400E; border: 1px solid #FDE68A;}
-.b-disposed{background:#FEF2F2;color:#B91C1C; border: 1px solid #FECACA;}
-.b-maintenance{background:#F5F3FF;color:#5B21B6; border: 1px solid #DDD6FE;}
+        /* ── Data Tables ── */
+        .table-responsive-wrapper {
+            overflow-x: auto;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .data-table th {
+            background: var(--slate-50);
+            padding: 1rem 1.2rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--slate-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            border-bottom: 2px solid var(--slate-200);
+        }
+        
+        .data-table td {
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid var(--slate-100);
+            vertical-align: middle;
+            color: var(--slate-700);
+        }
+        
+        .data-table tr:hover td {
+            background: var(--slate-50);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        
+        .status-badge.type-active { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
+        .status-badge.type-transferred { background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; }
+        .status-badge.type-inactive { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+        .status-badge.type-disposed { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+        .status-badge.type-maintenance { background: #F5F3FF; color: #5B21B6; border: 1px solid #DDD6FE; }
 
-/* ── Buttons ── */
-.btn{
-  display:inline-flex;align-items:center;gap:0.5rem; justify-content: center;
-  padding:0.6rem 1.2rem;border-radius:10px;
-  font-size:0.9rem;font-weight:600;cursor:pointer;
-  border:none;transition:all 0.2s;font-family:'Inter',sans-serif;
-}
-.btn-primary{background:var(--green);color:white; box-shadow: 0 4px 10px rgba(0, 135, 81, 0.2);}
-.btn-primary:hover{background:var(--green-d);}
-.btn-gold{background:var(--gold);color:white; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);}
-.btn-gold:hover{background: #B49020;}
-.btn-outline{background:white;border:1px solid var(--gray-200);color:var(--gray-700);}
-.btn-outline:hover{background:var(--gray-50); border-color: var(--gray-300);}
-.btn-danger{background:var(--red);color:white}
-.btn-sm{padding:0.4rem 0.8rem;font-size:0.8rem}
-.btn-icon { padding: 0.4rem; border-radius: 8px; }
+        /* ── Action Buttons ── */
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .btn-theme-green { 
+            background: var(--primary-green); 
+            color: var(--surface-color); 
+            box-shadow: 0 4px 10px rgba(0, 135, 81, 0.2); 
+        }
+        
+        .btn-theme-green:hover { 
+            background: var(--dark-green); 
+        }
+        
+        .btn-theme-gold { 
+            background: var(--primary-gold); 
+            color: var(--surface-color); 
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2); 
+        }
+        
+        .btn-theme-gold:hover { 
+            background: #B49020; 
+        }
+        
+        .btn-theme-outline { 
+            background: var(--surface-color); 
+            border: 1px solid var(--slate-200); 
+            color: var(--slate-700); 
+        }
+        
+        .btn-theme-outline:hover { 
+            background: var(--slate-50); 
+            border-color: var(--slate-500); 
+        }
+        
+        .btn-small-size { 
+            padding: 0.4rem 0.8rem; 
+            font-size: 0.8rem; 
+        }
+        
+        .btn-icon-only { 
+            padding: 0.4rem; 
+            border-radius: 8px; 
+        }
 
-/* ── Form ── */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
-@media(max-width:700px){.form-grid{grid-template-columns:1fr}}
-.form-field{margin-bottom:0}
-.form-field label{display:block;font-size:0.85rem;font-weight:600;color:var(--gray-700);margin-bottom:0.5rem}
-.form-field input,.form-field select,.form-field textarea{
-  width:100%;padding:0.8rem 1rem;border:1px solid var(--gray-200);
-  border-radius:10px;font-size:0.95rem;font-family:'Inter',sans-serif;
-  transition:all 0.2s;outline:none;background:var(--gray-50); color: var(--gray-900);
-}
-.form-field input:focus,.form-field select:focus,.form-field textarea:focus{
-  border-color:var(--green);background:white;box-shadow:0 0 0 4px rgba(0, 135, 81, 0.1);
-}
-.form-field.full-width{grid-column:1/-1}
+        /* ── Form Interactions ── */
+        .input-grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+        }
+        
+        @media(max-width: 700px) {
+            .input-grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .input-field-group {
+            margin-bottom: 0;
+        }
+        
+        .input-field-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--slate-700);
+            margin-bottom: 0.5rem;
+        }
+        
+        .input-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--slate-200);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            outline: none;
+            background: var(--slate-50);
+            color: var(--slate-900);
+        }
+        
+        .input-control:focus {
+            border-color: var(--primary-green);
+            background: var(--surface-color);
+            box-shadow: 0 0 0 4px rgba(0, 135, 81, 0.1);
+        }
+        
+        .input-field-group.span-full {
+            grid-column: 1 / -1;
+        }
 
-/* ── Filter ── */
-.filter-bar{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
-.filter-bar input,.filter-bar select{
-  padding:0.7rem 1rem;border:1px solid var(--gray-200);
-  border-radius:10px;font-size:0.9rem;font-family:'Inter',sans-serif;
-  outline:none;background:white; color: var(--gray-900); font-weight: 500;
-}
-.filter-bar input:focus,.filter-bar select:focus{border-color:var(--green); box-shadow: 0 0 0 3px rgba(0, 135, 81, 0.1);}
-.filter-bar input{flex:1;min-width:200px}
+        /* ── Data Filter Bar ── */
+        .filter-controls-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-input {
+            padding: 0.7rem 1rem;
+            border: 1px solid var(--slate-200);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            background: var(--surface-color);
+            color: var(--slate-900);
+            font-weight: 500;
+        }
+        
+        .filter-input:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(0, 135, 81, 0.1);
+        }
+        
+        .filter-search-box {
+            flex: 1;
+            min-width: 200px;
+        }
 
-/* ── Block Explorer ── */
-.block-card{
-  border:1px solid var(--gray-200);border-radius:12px;padding:1.2rem;
-  margin-bottom:1rem;transition:all 0.2s;cursor:pointer; background: white;
-}
-.block-card:hover{border-color:var(--green);box-shadow:0 4px 15px rgba(0, 135, 81, 0.08);}
-.block-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem}
-.block-idx{
-  background:var(--green); color:white;padding:0.3rem 0.8rem;border-radius:8px;font-weight:800;font-size:0.85rem; display: flex; align-items: center; gap: 0.4rem;
-}
-.block-hash{font-family:monospace;font-size:0.75rem;color:var(--gray-500);word-break:break-all;margin-top:0.5rem; background: var(--gray-50); padding: 0.5rem; border-radius: 6px;}
-.block-meta{display:flex;gap:1.5rem;font-size:0.8rem;color:var(--gray-500);margin-top:0.8rem; font-weight: 500;}
+        /* ── Blockchain Explorer Blocks ── */
+        .ledger-block-item {
+            border: 1px solid var(--slate-200);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: var(--surface-color);
+        }
+        
+        .ledger-block-item:hover {
+            border-color: var(--primary-green);
+            box-shadow: 0 4px 15px rgba(0, 135, 81, 0.08);
+        }
+        
+        .block-header-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+        }
+        
+        .block-index-pill {
+            background: var(--primary-green);
+            color: var(--surface-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .block-hash-text {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--slate-500);
+            word-break: break-all;
+            margin-top: 0.5rem;
+            background: var(--slate-50);
+            padding: 0.5rem;
+            border-radius: 6px;
+        }
+        
+        .block-metadata {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--slate-500);
+            margin-top: 0.8rem;
+            font-weight: 500;
+        }
 
-/* ── Modal ── */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(15, 23, 42, 0.6);backdrop-filter: blur(4px); z-index:200;
-  display:flex;align-items:center;justify-content:center;padding:1rem;
-}
-.modal{
-  background:var(--white);border-radius:20px;width:100%;max-width:700px;
-  max-height:90vh;overflow-y:auto; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);
-}
-.modal-head{
-  padding:1.5rem;border-bottom:1px solid var(--gray-100);
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;background:var(--white);z-index:1;
-}
-.modal-head h3{font-size:1.15rem;font-weight:800; display: flex; align-items: center; gap: 0.5rem; color: var(--gray-900);}
-.modal-close{background:none;border:none; cursor:pointer;color:var(--gray-500);transition:color 0.2s; padding: 0.5rem;}
-.modal-close:hover{color:var(--gray-900); background: var(--gray-100); border-radius: 8px;}
-.modal-body{padding:1.5rem}
+        /* ── Modal Popups ── */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .modal-window {
+            background: var(--surface-color);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-elevated);
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--slate-100);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: var(--surface-color);
+            z-index: 1;
+        }
+        
+        .modal-header h3 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--slate-900);
+        }
+        
+        .btn-modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--slate-500);
+            transition: all 0.2s ease;
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+        
+        .btn-modal-close:hover {
+            color: var(--slate-900);
+            background: var(--slate-100);
+        }
+        
+        .modal-content-area {
+            padding: 1.5rem;
+        }
 
-/* ── Toasts ── */
-.toast-container{position:fixed;bottom:2rem;right:2rem;z-index:300;display:flex;flex-direction:column;gap:0.8rem}
-.toast{
-  padding:1rem 1.5rem;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.1);
-  font-size:0.9rem;font-weight:600;min-width:300px;
-  display:flex;align-items:center;gap:0.8rem;
-  animation:slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-.toast.success{background:#166534;color:white}
-.toast.error{background:#B91C1C;color:white}
-.toast.info{background:#1E40AF;color:white}
+        /* ── System Notifications ── */
+        .notification-tray {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        
+        .toast-message {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
+            font-weight: 600;
+            min-width: 300px;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            animation: animateSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        @keyframes animateSlideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .toast-message.toast-success { background: #166534; color: var(--surface-color); }
+        .toast-message.toast-error { background: #B91C1C; color: var(--surface-color); }
+        .toast-message.toast-info { background: #1E40AF; color: var(--surface-color); }
 
-.loading{display:flex; flex-direction: column; gap: 1rem; align-items:center;justify-content:center;padding:4rem;color:var(--gray-500); font-weight: 600;}
-.spin{animation:spin 1s linear infinite;}
-</style>
+        .spinner-animation {
+            animation: rotateSpinner 1s linear infinite;
+        }
+        
+        @keyframes rotateSpinner {
+            to { transform: rotate(360deg); }
+        }
+        
+        .data-loading-state {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            color: var(--slate-500);
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
-<div id="root"></div>
+    <div id="react-application-root"></div>
 
-<script type="text/babel">
-const {useState, useEffect, useCallback, useRef} = React;
-const API = 'http://localhost:5000/api';
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useRef } = React;
+        const FLASK_API_BASE = 'http://localhost:5000/api';
 
-// ── Helpers ────────────────────────────────────────────
-function getToken(){return localStorage.getItem('sarauta_token')||''}
-function getUser(){try{return JSON.parse(localStorage.getItem('sarauta_user')||'{}')}catch{return{}}}
-function fmtCurrency(n){return 'NGN '+Number(n||0).toLocaleString('en-NG',{minimumFractionDigits:2,maximumFractionDigits:2})}
-function fmtDate(s){if(!s)return '-';return new Date(s).toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'})}
-function fmtHash(h){if(!h)return '-';return h.substring(0,8)+'…'+h.substring(h.length-8)}
-function fmtTs(ts){if(!ts)return '-';return new Date(typeof ts==='number'?ts*1000:ts).toLocaleString('en-NG')}
-
-async function apiCall(path,method='GET',body=null){
-  const opts={method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()}};
-  if(body) opts.body=JSON.stringify(body);
-  const res=await fetch(API+path,opts);
-  if(res.status===401){localStorage.clear();window.location.href='/';return null}
-  return res.json();
-}
-
-function Icon({ name, className="", size=20 }) {
-  useEffect(() => { window.lucide.createIcons(); });
-  return <i data-lucide={name} className={className} style={{width: size, height: size}}></i>;
-}
-
-function ToastContainer({toasts}){
-  return <div className="toast-container">
-    {toasts.map(t=><div key={t.id} className={'toast '+t.type}><Icon name={t.icon}/> {t.msg}</div>)}
-  </div>
-}
-
-function BarChart({ data, valueKey, labelKey, title, color }) {
-  const canvasRef = useRef(null);
-  const chartRef = useRef(null);
-
-  useEffect(() => {
-    if (!canvasRef.current || !data || !data.length) return;
-    if (chartRef.current) chartRef.current.destroy();
-
-    const ctx = canvasRef.current.getContext('2d');
-    chartRef.current = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: data.map(d => d[labelKey]),
-        datasets: [{
-          label: title,
-          data: data.map(d => d[valueKey]),
-          backgroundColor: color || '#008751',
-          borderRadius: 6,
-          barPercentage: 0.6
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#E2E8F0' }, ticks: { stepSize: 1 } },
-          x: { grid: { display: false } }
+        // ── Security & Authentication API ────────────────────────────
+        function fetchJwtToken() {
+            return localStorage.getItem('jigawa_token') || '';
         }
-      }
-    });
-    return () => { if (chartRef.current) chartRef.current.destroy(); }
-  }, [data]);
 
-  if (!data || !data.length) return <div style={{color:'#94A3B8',fontSize:'0.9rem',padding:'2rem 0', textAlign: 'center'}}>No data available</div>;
-  return <div style={{height: '280px', width: '100%'}}><canvas ref={canvasRef}></canvas></div>;
-}
-
-// ── Dashboard Page ────────────────────────────────────
-function DashboardPage({addToast}){
-  const [stats,setStats]=useState(null);
-  const [loading,setLoading]=useState(true);
-
-  useEffect(()=>{
-    (async()=>{
-      setLoading(true);
-      const d=await apiCall('/dashboard');
-      setStats(d);setLoading(false);
-    })();
-  },[]);
-
-  if(loading) return <div className="loading"><Icon name="loader-2" className="spin" size={40}/> Loading dashboard...</div>;
-  if(!stats) return <div className="loading">Failed to load stats</div>;
-
-  const chainStatus=stats.chain_valid;
-  return <>
-    <div className="stats-grid">
-      <div className="stat-card green">
-        <div className="stat-header">
-          <div className="stat-icon"><Icon name="landmark" size={24}/></div>
-          <span className="badge b-active">Active</span>
-        </div>
-        <div className="stat-val">{stats.total_assets?.toLocaleString()}</div>
-        <div className="stat-label">Registered Assets</div>
-      </div>
-      <div className="stat-card gold">
-        <div className="stat-header">
-          <div className="stat-icon"><Icon name="coins" size={24}/></div>
-        </div>
-        <div className="stat-val" style={{fontSize:'1.6rem'}}>{fmtCurrency(stats.total_value)}</div>
-        <div className="stat-label">Total Asset Value</div>
-      </div>
-      <div className="stat-card blue">
-        <div className="stat-header">
-          <div className="stat-icon"><Icon name="link" size={24}/></div>
-          <span className="badge b-transferred">{stats.total_blocks} Blocks</span>
-        </div>
-        <div className="stat-val">{stats.total_transactions?.toLocaleString()}</div>
-        <div className="stat-label">Blockchain Transactions</div>
-      </div>
-      <div className="stat-card purple">
-        <div className="stat-header">
-          <div className="stat-icon"><Icon name={chainStatus?'shield-check':'alert-triangle'} size={24}/></div>
-        </div>
-        <div className="stat-val" style={{fontSize:'1.4rem',color:chainStatus?'#166534':'#B91C1C'}}>
-          {chainStatus?'VALID & SECURE':'INTEGRITY ALERT'}
-        </div>
-        <div className="stat-label">System Integrity</div>
-      </div>
-    </div>
-
-    <div className="grid-2" style={{marginBottom:'1.5rem'}}>
-      <div className="card">
-        <div className="card-head"><Icon name="bar-chart-3"/> <h3>Assets by Category</h3></div>
-        <div className="card-body">
-          <BarChart data={stats.by_category} valueKey="count" labelKey="category" title="Assets" color="#008751" />
-        </div>
-      </div>
-      <div className="card">
-        <div className="card-head"><Icon name="pie-chart"/> <h3>Assets by Status</h3></div>
-        <div className="card-body">
-          <BarChart data={stats.by_status} valueKey="count" labelKey="status" title="Status" color="#D4AF37" />
-        </div>
-      </div>
-    </div>
-
-    <div className="card">
-      <div className="card-head"><Icon name="building-2"/> <h3>Top Departments by Asset Count</h3></div>
-      <div className="tbl-wrap">
-        <table>
-          <thead><tr><th>#</th><th>Department</th><th>Asset Count</th><th>Share</th></tr></thead>
-          <tbody>
-            {(stats.by_department||[]).map((d,i)=>{
-              const pct=((d.count/Math.max(stats.total_assets,1))*100).toFixed(1);
-              return <tr key={i}>
-                <td><b>{i+1}</b></td>
-                <td>{d.department}</td>
-                <td><b style={{color: 'var(--gray-900)'}}>{d.count}</b></td>
-                <td>
-                  <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>
-                    <div style={{flex:1,height:8,background:'#F1F5F9',borderRadius:99, overflow: 'hidden'}}>
-                      <div style={{width:pct+'%',height:'100%',background:'var(--green)',borderRadius:99}}/>
-                    </div>
-                    <span style={{fontSize:'0.8rem',color:'#64748B',width:40, fontWeight: 600}}>{pct}%</span>
-                  </div>
-                </td>
-              </tr>
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </>;
-}
-
-// ── Assets Page ──────────────────────────────────────
-function AssetsPage({addToast,user}){
-  const [assets,setAssets]=useState([]);
-  const [loading,setLoading]=useState(true);
-  const [search,setSearch]=useState('');
-  const [category,setCategory]=useState('');
-  const [status,setStatus]=useState('');
-  const [showModal,setShowModal]=useState(false);
-  const [showTransfer,setShowTransfer]=useState(false);
-  const [showAudit,setShowAudit]=useState(false);
-  const [selectedAsset,setSelectedAsset]=useState(null);
-  const [detailAsset,setDetailAsset]=useState(null);
-
-  const loadAssets=useCallback(async()=>{
-    setLoading(true);
-    const params=new URLSearchParams();
-    if(search) params.set('search',search);
-    if(category) params.set('category',category);
-    if(status) params.set('status',status);
-    const d=await apiCall('/assets?'+params);
-    setAssets(d?.assets||[]);
-    setLoading(false);
-  },[search,category,status]);
-
-  useEffect(()=>{loadAssets()},[loadAssets]);
-
-  function badgeClass(val){
-    const map={Active:'b-active',Transferred:'b-transferred',Inactive:'b-inactive',Disposed:'b-disposed','Under Maintenance':'b-maintenance'};
-    return 'badge '+(map[val]||'badge');
-  }
-
-  const canWrite=user.role==='admin'||user.role==='manager';
-  const canAudit=user.role==='admin'||user.role==='auditor'||user.role==='manager';
-
-  async function viewDetail(assetId){
-    const d=await apiCall('/assets/'+assetId);
-    setDetailAsset(d);
-  }
-
-  return <>
-    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1.5rem'}}>
-      <div>
-        <h2 style={{fontSize:'1.3rem',fontWeight:800, color: 'var(--gray-900)'}}>Asset Registry</h2>
-        <p style={{fontSize:'0.9rem',color:'#64748B',marginTop:4}}>Manage and verify official government assets</p>
-      </div>
-      {canWrite&&<button className="btn btn-primary" onClick={()=>setShowModal(true)}><Icon name="plus" size={18}/> Register Asset</button>}
-    </div>
-
-    <div className="filter-bar">
-      <div className="form-field" style={{flex: 1, minWidth: '250px'}}>
-        <div style={{position: 'relative'}}>
-            <Icon name="search" size={18} style={{position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8'}}/>
-            <input placeholder="Search ID or Name..." value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==='Enter'&&loadAssets()} style={{paddingLeft: '2.5rem'}}/>
-        </div>
-      </div>
-      <select value={category} onChange={e=>setCategory(e.target.value)}>
-        <option value="">All Categories</option>
-        {['Building','Vehicle','Equipment','Infrastructure','Land','Technology','Furniture','Other'].map(c=><option key={c}>{c}</option>)}
-      </select>
-      <select value={status} onChange={e=>setStatus(e.target.value)}>
-        <option value="">All Statuses</option>
-        {['Active','Inactive','Under Maintenance','Disposed','Transferred'].map(s=><option key={s}>{s}</option>)}
-      </select>
-      <button className="btn btn-outline" onClick={loadAssets}>Filter</button>
-    </div>
-
-    <div className="card">
-      <div className="card-head">
-        <h3><Icon name="list"/> Asset List ({assets.length})</h3>
-        <button className="btn btn-outline btn-sm" onClick={loadAssets}><Icon name="refresh-cw" size={14}/> Refresh</button>
-      </div>
-      <div className="tbl-wrap">
-        {loading?<div className="loading"><Icon name="loader-2" className="spin" size={32}/> Loading ledger...</div>:
-        <table>
-          <thead><tr><th>Asset ID</th><th>Name</th><th>Category</th><th>Department</th><th>Value</th><th>Owner</th><th>Status</th><th>Block</th><th>Actions</th></tr></thead>
-          <tbody>
-            {assets.length===0?
-              <tr><td colSpan={9} style={{textAlign:'center',padding:'4rem',color:'#64748B'}}>No assets found matching criteria</td></tr>:
-              assets.map(a=><tr key={a.asset_id}>
-                <td><code style={{fontSize:'0.8rem', background: '#F1F5F9', padding: '0.3rem 0.5rem', borderRadius: '6px', color: 'var(--green-d)'}}>{a.asset_id}</code></td>
-                <td><b style={{color: 'var(--gray-900)'}}>{a.asset_name}</b></td>
-                <td><span style={{fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)'}}>{a.category}</span></td>
-                <td style={{fontSize:'0.85rem'}}>{a.department}</td>
-                <td style={{fontWeight:700, color: 'var(--gray-900)'}}>{fmtCurrency(a.asset_value)}</td>
-                <td style={{fontSize:'0.85rem'}}>{a.owner}</td>
-                <td><span className={badgeClass(a.status)}>{a.status}</span></td>
-                <td style={{fontSize:'0.8rem',color:'#64748B'}}>#{a.block_index}</td>
-                <td>
-                  <div style={{display:'flex',gap:'0.4rem'}}>
-                    <button className="btn btn-outline btn-icon" onClick={()=>viewDetail(a.asset_id)} title="View Details"><Icon name="eye" size={16}/></button>
-                    {canWrite&&<button className="btn btn-outline btn-icon" onClick={()=>{setSelectedAsset(a);setShowTransfer(true)}} title="Transfer Ownership"><Icon name="arrow-right-left" size={16}/></button>}
-                    {canAudit&&<button className="btn btn-outline btn-icon" onClick={()=>{setSelectedAsset(a);setShowAudit(true)}} title="Record Audit"><Icon name="clipboard-check" size={16}/></button>}
-                  </div>
-                </td>
-              </tr>)
+        function fetchUserData() {
+            try {
+                const userDataText = localStorage.getItem('jigawa_user');
+                return JSON.parse(userDataText || '{}');
+            } catch (parsingError) {
+                return {};
             }
-          </tbody>
-        </table>}
-      </div>
-    </div>
+        }
 
-    {showModal&&<RegisterModal onClose={()=>setShowModal(false)} onSuccess={()=>{setShowModal(false);loadAssets();addToast('Asset registered on blockchain','success','check-circle')}} addToast={addToast}/>}
-    {showTransfer&&selectedAsset&&<TransferModal asset={selectedAsset} onClose={()=>setShowTransfer(false)} onSuccess={()=>{setShowTransfer(false);loadAssets();addToast('Transfer recorded on blockchain','success','arrow-right-left')}} addToast={addToast}/>}
-    {showAudit&&selectedAsset&&<AuditModal asset={selectedAsset} onClose={()=>setShowAudit(false)} onSuccess={()=>{setShowAudit(false);addToast('Audit recorded on blockchain','success','clipboard-check')}} addToast={addToast}/>}
-    {detailAsset&&<AssetDetailModal data={detailAsset} onClose={()=>setDetailAsset(null)}/>}
-  </>;
-}
-
-// ── Modals ──────────────────────────────────────────
-function RegisterModal({onClose,onSuccess,addToast}){
-  const [form,setForm]=useState({asset_name:'',category:'Building',department:'',asset_value:'',owner:'',status:'Active',description:''});
-  const [loading,setLoading]=useState(false);
-  const set=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
-
-  async function submit(){
-    if(!form.asset_name||!form.department||!form.asset_value||!form.owner){
-      addToast('Please fill all required fields','error','alert-circle');return;
-    }
-    setLoading(true);
-    const res=await apiCall('/assets/register','POST',form);
-    setLoading(false);
-    if(res?.success) onSuccess();
-    else addToast(res?.error||'Registration failed','error','x-circle');
-  }
-
-  return <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
-    <div className="modal">
-      <div className="modal-head">
-        <h3><Icon name="file-plus"/> Register New Asset</h3>
-        <button className="modal-close" onClick={onClose}><Icon name="x"/></button>
-      </div>
-      <div className="modal-body">
-        <div className="form-grid">
-          <div className="form-field full-width">
-            <label>Asset Name *</label>
-            <input placeholder="e.g. Ministry Hilux Truck" value={form.asset_name} onChange={set('asset_name')}/>
-          </div>
-          <div className="form-field">
-            <label>Category *</label>
-            <select value={form.category} onChange={set('category')}>
-              {['Building','Vehicle','Equipment','Infrastructure','Land','Technology','Furniture','Other'].map(c=><option key={c}>{c}</option>)}
-            </select>
-          </div>
-          <div className="form-field">
-            <label>Asset Value (NGN) *</label>
-            <input type="number" placeholder="0.00" value={form.asset_value} onChange={set('asset_value')}/>
-          </div>
-          <div className="form-field">
-            <label>Government Department *</label>
-            <input placeholder="e.g. Ministry of Works" value={form.department} onChange={set('department')}/>
-          </div>
-          <div className="form-field">
-            <label>Current Owner / Custodian *</label>
-            <input placeholder="e.g. Ministry of Finance" value={form.owner} onChange={set('owner')}/>
-          </div>
-          <div className="form-field full-width">
-            <label>Status</label>
-            <select value={form.status} onChange={set('status')}>
-              {['Active','Inactive','Under Maintenance','Disposed','Transferred'].map(s=><option key={s}>{s}</option>)}
-            </select>
-          </div>
-        </div>
-        <div style={{display:'flex',gap:'1rem',justifyContent:'flex-end',marginTop:'2rem'}}>
-          <button className="btn btn-outline" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={submit} disabled={loading}>
-            {loading?<><Icon name="loader-2" className="spin"/> Mining...</>:<><Icon name="link"/> Register on Blockchain</>}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>;
-}
-
-function TransferModal({asset,onClose,onSuccess,addToast}){
-  const [form,setForm]=useState({from_owner:asset.owner,to_owner:'',reason:''});
-  const [loading,setLoading]=useState(false);
-  const set=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
-
-  async function submit(){
-    if(!form.to_owner||!form.reason){addToast('Fill all fields','error','alert-circle');return}
-    setLoading(true);
-    const res=await apiCall('/assets/transfer','POST',{...form,asset_id:asset.asset_id});
-    setLoading(false);
-    if(res?.success) onSuccess();
-    else addToast(res?.error||'Transfer failed','error','x-circle');
-  }
-
-  return <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
-    <div className="modal">
-      <div className="modal-head"><h3><Icon name="arrow-right-left"/> Transfer Ownership</h3><button className="modal-close" onClick={onClose}><Icon name="x"/></button></div>
-      <div className="modal-body">
-        <div style={{background:'#F8FAFC',border:'1px solid #E2E8F0',borderRadius:12,padding:'1rem',marginBottom:'1.5rem',fontSize:'0.9rem', color: '#334155'}}>
-          <strong style={{color: '#0F172A'}}>Asset:</strong> {asset.asset_name} <code style={{color: 'var(--green)'}}>({asset.asset_id})</code>
-        </div>
-        <div className="form-grid">
-          <div className="form-field">
-            <label>From (Current Owner)</label>
-            <input value={form.from_owner} onChange={set('from_owner')} readOnly style={{background: '#F1F5F9', color: '#64748B'}}/>
-          </div>
-          <div className="form-field">
-            <label>To (New Owner) *</label>
-            <input placeholder="New department/owner" value={form.to_owner} onChange={set('to_owner')}/>
-          </div>
-          <div className="form-field full-width">
-            <label>Transfer Reason & Authority *</label>
-            <textarea rows={3} placeholder="Reason for transfer..." value={form.reason} onChange={set('reason')}/>
-          </div>
-        </div>
-        <div style={{display:'flex',gap:'1rem',justifyContent:'flex-end',marginTop:'2rem'}}>
-          <button className="btn btn-outline" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={submit} disabled={loading}>{loading?<><Icon name="loader-2" className="spin"/> Processing...</>:<><Icon name="arrow-right-left"/> Execute Transfer</>}</button>
-        </div>
-      </div>
-    </div>
-  </div>;
-}
-
-function AuditModal({asset,onClose,onSuccess,addToast}){
-  const [form,setForm]=useState({audit_type:'Routine',findings:''});
-  const [loading,setLoading]=useState(false);
-  const set=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
-
-  async function submit(){
-    if(!form.findings){addToast('Enter audit findings','error','alert-circle');return}
-    setLoading(true);
-    const res=await apiCall('/assets/audit','POST',{...form,asset_id:asset.asset_id});
-    setLoading(false);
-    if(res?.success) onSuccess();
-    else addToast(res?.error||'Audit failed','error','x-circle');
-  }
-
-  return <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
-    <div className="modal">
-      <div className="modal-head"><h3><Icon name="clipboard-check"/> Record Audit</h3><button className="modal-close" onClick={onClose}><Icon name="x"/></button></div>
-      <div className="modal-body">
-        <div style={{background:'#F8FAFC',border:'1px solid #E2E8F0',borderRadius:12,padding:'1rem',marginBottom:'1.5rem',fontSize:'0.9rem', color: '#334155'}}>
-          <strong style={{color: '#0F172A'}}>Asset:</strong> {asset.asset_name} <code style={{color: 'var(--green)'}}>({asset.asset_id})</code>
-        </div>
-        <div className="form-grid">
-          <div className="form-field full-width">
-            <label>Audit Type</label>
-            <select value={form.audit_type} onChange={set('audit_type')}>
-              {['Routine','Special','Compliance','Disposal','Valuation'].map(t=><option key={t}>{t}</option>)}
-            </select>
-          </div>
-          <div className="form-field full-width">
-            <label>Findings & Observations *</label>
-            <textarea rows={5} placeholder="Detailed audit findings..." value={form.findings} onChange={set('findings')}/>
-          </div>
-        </div>
-        <div style={{display:'flex',gap:'1rem',justifyContent:'flex-end',marginTop:'2rem'}}>
-          <button className="btn btn-outline" onClick={onClose}>Cancel</button>
-          <button className="btn btn-gold" onClick={submit} disabled={loading}>{loading?<><Icon name="loader-2" className="spin"/> Committing...</>:<><Icon name="link"/> Commit to Ledger</>}</button>
-        </div>
-      </div>
-    </div>
-  </div>;
-}
-
-function AssetDetailModal({data,onClose}){
-  const {asset,history}=data;
-  if(!asset) return null;
-  
-  function getIcon(a){
-    if(a==='REGISTER_ASSET') return 'file-plus';
-    if(a==='TRANSFER_ASSET') return 'arrow-right-left';
-    if(a==='AUDIT_ASSET') return 'clipboard-check';
-    return 'link';
-  }
-
-  return <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
-    <div className="modal">
-      <div className="modal-head">
-        <h3><Icon name="landmark"/> {asset.asset_name}</h3>
-        <button className="modal-close" onClick={onClose}><Icon name="x"/></button>
-      </div>
-      <div className="modal-body">
-        <div className="grid-2" style={{marginBottom:'2rem'}}>
-          {[
-            ['Asset ID',asset.asset_id],['Category',asset.category],
-            ['Department',asset.department],['Owner',asset.owner],
-            ['Value',fmtCurrency(asset.asset_value)],['Status',asset.status],
-            ['Block #',asset.block_index],['Registered',fmtDate(asset.registration_date)]
-          ].map(([l,v])=><div key={l} style={{background:'#F8FAFC',borderRadius:10,padding:'1rem', border: '1px solid #F1F5F9'}}>
-            <div style={{fontSize:'0.75rem',color:'#64748B',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:4}}>{l}</div>
-            <div style={{fontWeight:700,fontSize:'0.95rem', color: '#0F172A'}}>{v}</div>
-          </div>)}
-        </div>
-        
-        <div style={{marginBottom:'1rem',fontWeight:800,fontSize:'1.05rem', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-            <Icon name="git-commit-vertical"/> Ledger History ({history?.length||0} records)
-        </div>
-        
-        <div style={{position:'relative', paddingLeft:'1.5rem'}}>
-          <div style={{position:'absolute',left:'7px',top:0,bottom:0,width:'2px',background:'#E2E8F0'}}/>
-          {(history||[]).map((h,i)=><div key={i} style={{position:'relative', paddingBottom:'1.5rem'}}>
-            <div style={{position:'absolute',left:'-1.5rem',top:'4px',width:'16px',height:'16px',borderRadius:'50%',background: h.action === 'TRANSFER_ASSET' ? '#3B82F6' : h.action === 'AUDIT_ASSET' ? '#D4AF37' : 'var(--green)',border:'3px solid white',boxShadow:'0 0 0 2px ' + (h.action === 'TRANSFER_ASSET' ? '#3B82F6' : h.action === 'AUDIT_ASSET' ? '#D4AF37' : 'var(--green)')}}/>
-            <div style={{fontSize:'0.8rem',color:'#64748B',marginBottom:'0.4rem', fontWeight: 600}}>{fmtTs(h.timestamp)} · Block #{h.block_index}</div>
-            <div style={{background:'#F8FAFC',border:'1px solid #E2E8F0',borderRadius:'12px',padding:'1rem'}}>
-              <div style={{fontSize:'0.9rem',fontWeight:800,color:'#0F172A', display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'0.4rem'}}>
-                  <Icon name={getIcon(h.action)} size={16}/> {h.action?.replace(/_/g,' ')}
-              </div>
-              <div style={{fontSize:'0.85rem',color:'#475569', marginTop: '0.4rem'}}><strong>Actor:</strong> {h.actor} · <strong>TX:</strong> {h.tx_id}</div>
-              <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'#64748B',marginTop:'0.8rem',wordBreak:'break-all', background: '#F1F5F9', padding: '0.5rem', borderRadius: '6px'}}>
-                  Hash: {h.block_hash}
-              </div>
-            </div>
-          </div>)}
-        </div>
-      </div>
-    </div>
-  </div>;
-}
-
-// ── Chain Page ───────────────────────────────────────
-function ChainPage({addToast}){
-  const [chain,setChain]=useState([]);
-  const [stats,setStats]=useState(null);
-  const [page,setPage]=useState(1);
-  const [total,setTotal]=useState(0);
-  const [validation,setValidation]=useState(null);
-  const [loading,setLoading]=useState(true);
-  const [expandedBlock,setExpandedBlock]=useState(null);
-  const [mining,setMining]=useState(false);
-  const PER=10;
-
-  async function load(){
-    setLoading(true);
-    const [c,s]=await Promise.all([apiCall('/blockchain/chain?page='+page+'&per_page='+PER),apiCall('/blockchain/stats')]);
-    setChain(c?.chain||[]);setTotal(c?.total||0);setStats(s);
-    setLoading(false);
-  }
-
-  useEffect(()=>{load()},[page]);
-
-  async function validate(){
-    const v=await apiCall('/blockchain/validate');
-    setValidation(v);
-    addToast(v?.valid?'Chain integrity verified':'Integrity issues detected',v?.valid?'success':'error','shield-check');
-  }
-
-  async function mineNow(){
-    const user=getUser();
-    if(user.role!=='admin'){addToast('Only admins can mine','error','lock');return}
-    setMining(true);
-    const res=await apiCall('/blockchain/mine','POST',{});
-    setMining(false);
-    if(res?.success){addToast('Block #'+res.block?.index+' mined!','success','box');load();}
-    else addToast(res?.message||'Nothing to mine','info','info');
-  }
-
-  const pages=Math.ceil(total/PER)||1;
-
-  return <>
-    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1.5rem'}}>
-      <div>
-        <h2 style={{fontSize:'1.3rem',fontWeight:800, color: '#0F172A'}}>Distributed Ledger</h2>
-        <p style={{fontSize:'0.9rem',color:'#64748B',marginTop:4}}>JIGAWA-MAINNET · Proof-of-Work · SHA-256</p>
-      </div>
-      <div style={{display:'flex',gap:'1rem'}}>
-        <button className="btn btn-outline" onClick={validate}><Icon name="shield-check" size={18}/> Validate Chain</button>
-        <button className="btn btn-gold" onClick={mineNow} disabled={mining}>
-          {mining?<><Icon name="loader-2" className="spin"/> Mining...</>:<><Icon name="pickaxe"/> Mine Block</>}
-        </button>
-      </div>
-    </div>
-
-    {stats&&<div className="stats-grid" style={{marginBottom:'1.5rem'}}>
-      <div className="stat-card green"><div className="stat-header"><div className="stat-icon"><Icon name="box"/></div></div><div className="stat-val">{stats.total_blocks}</div><div className="stat-label">Total Blocks</div></div>
-      <div className="stat-card gold"><div className="stat-header"><div className="stat-icon"><Icon name="arrow-right-left"/></div></div><div className="stat-val">{stats.total_transactions}</div><div className="stat-label">Total Transactions</div></div>
-      <div className="stat-card blue"><div className="stat-header"><div className="stat-icon"><Icon name="hourglass"/></div></div><div className="stat-val">{stats.pending_transactions}</div><div className="stat-label">Pending (Mempool)</div></div>
-      <div className="stat-card purple"><div className="stat-header"><div className="stat-icon"><Icon name="cpu"/></div></div><div className="stat-val" style={{fontSize:'1.1rem', marginTop: '0.8rem'}}>{stats.consensus}</div><div className="stat-label">Consensus</div></div>
-    </div>}
-
-    {validation&&<div style={{padding:'1rem 1.5rem',borderRadius:12,background:validation.valid?'#F0FDF4':'#FEF2F2',border:'1px solid '+(validation.valid?'#BBF7D0':'#FECACA'),marginBottom:'1.5rem',fontSize:'0.9rem',fontWeight:600,color:validation.valid?'#166534':'#B91C1C', display: 'flex', alignItems: 'center', gap: '0.8rem'}}>
-      <Icon name={validation.valid?'shield-check':'alert-triangle'} size={24}/>
-      {validation.valid?`Chain integrity verified — all ${validation.chain_length} blocks are cryptographically valid.`:('Integrity issues: '+validation.issues?.join(', '))}
-    </div>}
-
-    <div className="card">
-      <div className="card-head">
-        <h3><Icon name="layers"/> Recent Blocks</h3>
-        <span style={{fontSize:'0.85rem',color:'#64748B', fontWeight: 600}}>Page {page} / {pages}</span>
-      </div>
-      <div className="card-body">
-        {loading?<div className="loading"><Icon name="loader-2" className="spin" size={32}/> Loading chain...</div>:
-        chain.map(b=><div key={b.index} className="block-card" onClick={()=>setExpandedBlock(expandedBlock===b.index?null:b.index)}>
-          <div className="block-header">
-            <span className="block-idx"><Icon name="box" size={14}/> Block #{b.index}</span>
-            <span style={{fontSize:'0.85rem',color:'#64748B', fontWeight: 600}}><Icon name="clock" size={14} style={{verticalAlign: 'middle', marginRight: '4px'}}/> {fmtTs(b.timestamp_human)}</span>
-          </div>
-          <div className="block-hash"><Icon name="hash" size={14} style={{verticalAlign: 'middle', marginRight: '4px'}}/> {b.hash}</div>
-          <div className="block-meta">
-            <span><Icon name="file-text" size={14}/> {b.tx_count} tx</span>
-            <span><Icon name="user" size={14}/> Mined by: {b.mined_by}</span>
-            <span><Icon name="cpu" size={14}/> Nonce: {b.nonce}</span>
-          </div>
-          {expandedBlock===b.index&&<div style={{marginTop:'1.2rem',borderTop:'1px solid #E2E8F0',paddingTop:'1.2rem'}}>
-            <div style={{fontSize:'0.85rem',fontWeight:700,marginBottom:'0.5rem',color:'#0F172A'}}>Previous Hash:</div>
-            <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'#64748B',wordBreak:'break-all',marginBottom:'1rem', background: '#F1F5F9', padding: '0.5rem', borderRadius: '6px'}}>{b.previous_hash}</div>
+        async function performApiRequest(endpointPath, httpMethod = 'GET', requestBody = null) {
+            const fetchConfig = {
+                method: httpMethod,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + fetchJwtToken()
+                }
+            };
             
-            <div style={{fontSize:'0.85rem',fontWeight:700,marginBottom:'0.5rem',color:'#0F172A'}}>Transactions ({b.transactions?.length||0}):</div>
-            {(b.transactions||[]).map((tx,i)=><div key={i} style={{background:'#F8FAFC',border:'1px solid #E2E8F0',borderRadius:'10px',padding:'1rem',marginBottom:'0.5rem',fontSize:'0.85rem'}}>
-              <div style={{fontWeight: 700, color: '#0F172A', marginBottom: '0.4rem'}}>{tx.action||'TX'}</div>
-              <div style={{color: '#475569', marginBottom: '0.2rem'}}><strong>Actor:</strong> {tx.actor} · <strong>ID:</strong> {tx.tx_id}</div>
-              {tx.payload?.asset_id&&<div style={{color: '#64748B'}}><strong>Asset ID:</strong> {tx.payload.asset_id}</div>}
-            </div>)}
-          </div>}
-        </div>)}
+            if (requestBody) {
+                fetchConfig.body = JSON.stringify(requestBody);
+            }
+            
+            const serverResponse = await fetch(FLASK_API_BASE + endpointPath, fetchConfig);
+            
+            if (serverResponse.status === 401) {
+                // Token has expired or is invalid. Redirect to login.
+                localStorage.clear();
+                window.location.href = '/';
+                return null;
+            }
+            
+            return serverResponse.json();
+        }
 
-        <div style={{display:'flex',gap:'0.8rem',justifyContent:'center',marginTop:'1.5rem'}}>
-          <button className="btn btn-outline btn-sm" disabled={page<=1} onClick={()=>setPage(p=>p-1)}>Previous</button>
-          <span style={{padding:'0.4rem 1rem',fontSize:'0.9rem',color:'#64748B', fontWeight: 600}}>Page {page} of {pages}</span>
-          <button className="btn btn-outline btn-sm" disabled={page>=pages} onClick={()=>setPage(p=>p+1)}>Next</button>
-        </div>
-      </div>
-    </div>
-  </>;
-}
+        // ── Formatting Service Functions ──────────────────────────────
+        function formatNaira(numericalValue) {
+            return 'NGN ' + Number(numericalValue || 0).toLocaleString('en-NG', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
 
-// ── Reports Page ─────────────────────────────────────
-function ReportsPage({addToast,user}){
-  const [logs,setLogs]=useState([]);
-  const [loadingLogs,setLoadingLogs]=useState(true);
+        function formatDisplayDate(dateValue) {
+            if (!dateValue) return '-';
+            return new Date(dateValue).toLocaleDateString('en-NG', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
 
-  useEffect(()=>{
-    if(user.role==='admin'||user.role==='auditor'){
-      (async()=>{
-        setLoadingLogs(true);
-        const d=await apiCall('/reports/audit-log');
-        setLogs(d?.logs||[]);
-        setLoadingLogs(false);
-      })();
-    } else setLoadingLogs(false);
-  },[]);
+        function formatHashPreview(hashString) {
+            if (!hashString) return '-';
+            return hashString.substring(0, 8) + '…' + hashString.substring(hashString.length - 8);
+        }
 
-  async function exportReport(){
-    const token=getToken();
-    const res=await fetch(API+'/reports/export',{headers:{Authorization:'Bearer '+token}});
-    if(!res.ok){addToast('Export failed','error','alert-circle');return}
-    const blob=await res.blob();
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download='jigawa_registry_report.json';a.click();
-    addToast('Report exported successfully','success','download');
-  }
+        function formatDisplayTimestamp(unixOrIsoTimestamp) {
+            if (!unixOrIsoTimestamp) return '-';
+            const parsedTime = typeof unixOrIsoTimestamp === 'number' 
+                ? unixOrIsoTimestamp * 1000 
+                : unixOrIsoTimestamp;
+            return new Date(parsedTime).toLocaleString('en-NG');
+        }
 
-  return <>
-    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'1.5rem'}}>
-      <div>
-        <h2 style={{fontSize:'1.3rem',fontWeight:800, color: '#0F172A'}}>Reports & Audit Logs</h2>
-        <p style={{fontSize:'0.9rem',color:'#64748B',marginTop:4}}>Full activity log and data exports</p>
-      </div>
-      <button className="btn btn-gold" onClick={exportReport}><Icon name="download" size={18}/> Export Full Report</button>
-    </div>
+        // ── Shared UI Components ──────────────────────────────────────
+        function LucideIcon({ iconName, customClass = "", iconSize = 20, inlineStyles = {} }) {
+            const spanRef = useRef(null);
+            
+            useEffect(() => {
+                if (spanRef.current) {
+                    window.lucide.createIcons({ root: spanRef.current.parentElement });
+                }
+            });
+            
+            return (
+                <i 
+                    ref={spanRef} 
+                    data-lucide={iconName} 
+                    className={customClass} 
+                    style={{ width: iconSize, height: iconSize, ...inlineStyles }}
+                ></i>
+            );
+        }
 
-    {(user.role==='admin'||user.role==='auditor')?<div className="card">
-      <div className="card-head"><h3><Icon name="history"/> System Audit Log</h3></div>
-      <div className="tbl-wrap">
-        {loadingLogs?<div className="loading"><Icon name="loader-2" className="spin" size={32}/> Loading logs...</div>:
-        <table>
-          <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Detail</th><th>IP</th></tr></thead>
-          <tbody>
-            {logs.length===0?<tr><td colSpan={5} style={{textAlign:'center',padding:'3rem',color:'#64748B'}}>No logs available</td></tr>:
-            logs.map((l,i)=><tr key={i}>
-              <td style={{fontSize:'0.85rem',color:'#64748B',whiteSpace:'nowrap', fontWeight: 500}}>{fmtTs(l.created_at)}</td>
-              <td><b style={{fontSize:'0.9rem', color: '#0F172A'}}>{l.full_name||l.user_id}</b></td>
-              <td><span className="badge b-active" style={{fontSize:'0.75rem'}}>{l.action}</span></td>
-              <td style={{fontSize:'0.85rem',color:'#475569'}}>{l.detail}</td>
-              <td style={{fontSize:'0.8rem',color:'#94A3B8',fontFamily:'monospace'}}>{l.ip_address}</td>
-            </tr>)}
-          </tbody>
-        </table>}
-      </div>
-    </div>:
-    <div style={{background:'#FEFCE8',border:'1px solid #FEF08A',borderRadius:16,padding:'2rem',textAlign:'center',color:'#A16207',fontWeight:600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem'}}>
-      <Icon name="shield-alert" size={48} style={{color: '#CA8A04'}}/>
-      <span style={{fontSize: '1.1rem'}}>Access Restricted</span>
-      <span style={{fontSize: '0.9rem', color: '#854D0E'}}>Audit log viewing requires Administrator or Auditor privileges.</span>
-    </div>}
-  </>;
-}
+        function NotificationSystem({ notifications }) {
+            return (
+                <div className="notification-tray">
+                    {notifications.map(notification => (
+                        <div key={notification.id} className={'toast-message toast-' + notification.alertType}>
+                            <LucideIcon iconName={notification.iconSymbol} /> {notification.messageText}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
 
-// ── Main App ──────────────────────────────────────────
-function App(){
-  const [page,setPage]=useState('dashboard');
-  const [user]=useState(getUser());
-  const [toasts,setToasts]=useState([]);
-  const [chainValid,setChainValid]=useState(true);
+        // Implementation of Chart.js wrapping inside a React component
+        function VisualizationChart({ dataset, valueProperty, labelProperty, chartTitle, barColor }) {
+            const canvasElementRef = useRef(null);
+            const chartInstanceRef = useRef(null);
 
-  useEffect(()=>{
-    if(!localStorage.getItem('sarauta_token')){window.location.href='/';return}
-    apiCall('/blockchain/validate').then(v=>{if(v)setChainValid(v.valid)});
-  },[]);
+            useEffect(() => {
+                if (!canvasElementRef.current || !dataset || dataset.length === 0) return;
+                
+                // Clear any existing chart to prevent rendering glitches
+                if (chartInstanceRef.current) {
+                    chartInstanceRef.current.destroy();
+                }
 
-  function addToast(msg,type='info',iconName='info'){
-    const id=Date.now();
-    setToasts(t=>[...t,{id,msg,type,icon:iconName}]);
-    setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),4000);
-  }
+                const renderingContext = canvasElementRef.current.getContext('2d');
+                
+                chartInstanceRef.current = new Chart(renderingContext, {
+                    type: 'bar',
+                    data: {
+                        labels: dataset.map(item => item[labelProperty]),
+                        datasets: [{
+                            label: chartTitle,
+                            data: dataset.map(item => item[valueProperty]),
+                            backgroundColor: barColor || '#008751',
+                            borderRadius: 6,
+                            barPercentage: 0.6
+                        }]
+                    },
+                    options: {
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            legend: { display: false } 
+                        },
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { borderDash: [4, 4], color: '#E2E8F0' }, 
+                                ticks: { stepSize: 1 } 
+                            },
+                            x: { 
+                                grid: { display: false } 
+                            }
+                        }
+                    }
+                });
+                
+                // Cleanup routine
+                return () => { 
+                    if (chartInstanceRef.current) {
+                        chartInstanceRef.current.destroy(); 
+                    }
+                }
+            }, [dataset, valueProperty, labelProperty, chartTitle, barColor]);
 
-  function logout(){
-    apiCall('/auth/logout','POST',{});
-    localStorage.clear();
-    window.location.href='/';
-  }
+            if (!dataset || dataset.length === 0) {
+                return (
+                    <div style={{ color: '#94A3B8', fontSize: '0.9rem', padding: '2rem 0', textAlign: 'center' }}>
+                        Adequate data is not available to render this visualization.
+                    </div>
+                );
+            }
+            
+            return (
+                <div style={{ height: '280px', width: '100%', position: 'relative' }}>
+                    <canvas ref={canvasElementRef}></canvas>
+                </div>
+            );
+        }
 
-  const navItems=[
-    {id:'dashboard',label:'Dashboard',icon:'layout-dashboard'},
-    {id:'assets',label:'Asset Registry',icon:'landmark'},
-    {id:'blockchain',label:'Blockchain Explorer',icon:'link'},
-    {id:'reports',label:'Reports & Audit',icon:'clipboard-list'},
-  ];
+        // ── ROUTE PAGE: System Dashboard ──────────────────────────────
+        function RouteDashboard({ triggerToast }) {
+            const [dashboardStats, setDashboardStats] = useState(null);
+            const [isDataLoading, setIsDataLoading] = useState(true);
 
-  const pageTitle={dashboard:'Dashboard Overview',assets:'Asset Registry',blockchain:'Distributed Ledger',reports:'Reports & Compliance'};
+            useEffect(() => {
+                const initializeDashboard = async () => {
+                    setIsDataLoading(true);
+                    try {
+                        const fetchedData = await performApiRequest('/dashboard');
+                        setDashboardStats(fetchedData);
+                    } catch (error) {
+                        console.error("Dashboard Data Failure:", error);
+                    } finally {
+                        setIsDataLoading(false);
+                    }
+                };
+                
+                initializeDashboard();
+            }, []);
 
-  return <div className="layout">
-    {/* Sidebar */}
-    <div className="sidebar">
-      <div className="sb-brand">
-        <div className="sb-logo">
-          <div className="sb-icon"><Icon name="shield-check" size={24}/></div>
-          <div>
-            <div className="sb-title">State Registry</div>
-            <div className="sb-sub">Asset Ledger</div>
-          </div>
-        </div>
-      </div>
-      <div className="sb-nav">
-        <div className="sb-section">Main Menu</div>
-        {navItems.map(n=><button key={n.id} className={'nav-item'+(page===n.id?' active':'')} onClick={()=>setPage(n.id)}>
-          <span className="nav-icon"><Icon name={n.icon} size={18}/></span>{n.label}
-          {n.id==='blockchain'&&!chainValid&&<span className="nav-badge"><Icon name="alert-triangle" size={12}/></span>}
-        </button>)}
-      </div>
-      <div className="sb-user">
-        <div className="sb-avatar">{(user.full_name||'U').charAt(0).toUpperCase()}</div>
-        <div>
-          <div className="sb-uname">{user.full_name||user.username}</div>
-          <div className="sb-urole">{user.role||'viewer'} · {user.department||''}</div>
-        </div>
-        <button className="sb-logout" onClick={logout} title="Logout"><Icon name="log-out" size={18}/></button>
-      </div>
-    </div>
+            if (isDataLoading) {
+                return (
+                    <div className="data-loading-state">
+                        <LucideIcon iconName="loader-2" customClass="spinner-animation" iconSize={40} /> 
+                        Fetching latest ledger statistics...
+                    </div>
+                );
+            }
+            
+            if (!dashboardStats) {
+                return (
+                    <div className="data-loading-state">
+                        Failed to retrieve dashboard synchronization data.
+                    </div>
+                );
+            }
 
-    {/* Main */}
-    <div className="main">
-      <div className="topbar">
-        <h2>{pageTitle[page]}</h2>
-        <div className="topbar-right">
-          <div className="chain-badge">
-            <div className="chain-dot"/>
-            {chainValid?'Chain Valid':'Integrity Alert'}
-          </div>
-          <span style={{fontSize:'0.82rem',color:'var(--gray-700)',fontWeight:500, display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-            <Icon name="user-circle" size={18}/> {user.full_name||user.username}
-          </span>
-        </div>
-      </div>
-      <div className="content">
-        {page==='dashboard'&&<DashboardPage addToast={addToast}/>}
-        {page==='assets'&&<AssetsPage addToast={addToast} user={user}/>}
-        {page==='blockchain'&&<ChainPage addToast={addToast}/>}
-        {page==='reports'&&<ReportsPage addToast={addToast} user={user}/>}
-      </div>
-    </div>
+            const isChainHealthy = dashboardStats.chain_valid;
 
-    <ToastContainer toasts={toasts}/>
-  </div>;
-}
+            return (
+                <React.Fragment>
+                    {/* Primary Statistic Metrics */}
+                    <div className="metrics-grid">
+                        <div className="metric-card theme-green">
+                            <div className="metric-header">
+                                <div className="metric-icon-box">
+                                    <LucideIcon iconName="landmark" iconSize={24} />
+                                </div>
+                                <span className="status-badge type-active">Active Nodes</span>
+                            </div>
+                            <div className="metric-main-value">{dashboardStats.total_assets?.toLocaleString()}</div>
+                            <div className="metric-sub-label">Verified Registered Assets</div>
+                        </div>
+                        
+                        <div className="metric-card theme-gold">
+                            <div className="metric-header">
+                                <div className="metric-icon-box">
+                                    <LucideIcon iconName="coins" iconSize={24} />
+                                </div>
+                            </div>
+                            <div className="metric-main-value" style={{ fontSize: '1.6rem' }}>
+                                {formatNaira(dashboardStats.total_value)}
+                            </div>
+                            <div className="metric-sub-label">Net Declared Asset Value</div>
+                        </div>
+                        
+                        <div className="metric-card theme-blue">
+                            <div className="metric-header">
+                                <div className="metric-icon-box">
+                                    <LucideIcon iconName="link" iconSize={24} />
+                                </div>
+                                <span className="status-badge type-transferred">{dashboardStats.total_blocks} Mined Blocks</span>
+                            </div>
+                            <div className="metric-main-value">{dashboardStats.total_transactions?.toLocaleString()}</div>
+                            <div className="metric-sub-label">Total Validated Transactions</div>
+                        </div>
+                        
+                        <div className="metric-card theme-purple">
+                            <div className="metric-header">
+                                <div className="metric-icon-box">
+                                    <LucideIcon iconName={isChainHealthy ? 'shield-check' : 'alert-triangle'} iconSize={24} />
+                                </div>
+                            </div>
+                            <div className="metric-main-value" style={{ fontSize: '1.4rem', color: isChainHealthy ? '#166534' : '#B91C1C' }}>
+                                {isChainHealthy ? 'VALID & SECURE' : 'CRITICAL ALERT'}
+                            </div>
+                            <div className="metric-sub-label">Ledger Integrity Status</div>
+                        </div>
+                    </div>
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
-</script>
+                    {/* Secondary Visualizations */}
+                    <div className="layout-grid-dual" style={{ marginBottom: '1.5rem' }}>
+                        <div className="panel-card">
+                            <div className="panel-card-header">
+                                <h3><LucideIcon iconName="bar-chart-3" /> Assets Distributed by Category</h3>
+                            </div>
+                            <div className="panel-card-body">
+                                <VisualizationChart 
+                                    dataset={dashboardStats.by_category} 
+                                    valueProperty="count" 
+                                    labelProperty="category" 
+                                    chartTitle="Total Assets" 
+                                    barColor="#008751" 
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="panel-card">
+                            <div className="panel-card-header">
+                                <h3><LucideIcon iconName="pie-chart" /> Assets Categorized by Status</h3>
+                            </div>
+                            <div className="panel-card-body">
+                                <VisualizationChart 
+                                    dataset={dashboardStats.by_status} 
+                                    valueProperty="count" 
+                                    labelProperty="status" 
+                                    chartTitle="Current Status" 
+                                    barColor="#D4AF37" 
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Department Spread Table */}
+                    <div className="panel-card">
+                        <div className="panel-card-header">
+                            <h3><LucideIcon iconName="building-2" /> Highest Holding Government Departments</h3>
+                        </div>
+                        <div className="table-responsive-wrapper">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Department / Ministry Name</th>
+                                        <th>Asset Count</th>
+                                        <th>Holdings Share</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {(dashboardStats.by_department || []).map((departmentItem, iterIndex) => {
+                                        const calculationRatio = ((departmentItem.count / Math.max(dashboardStats.total_assets, 1)) * 100).toFixed(1);
+                                        return (
+                                            <tr key={iterIndex}>
+                                                <td><b>{iterIndex + 1}</b></td>
+                                                <td>{departmentItem.department}</td>
+                                                <td><b style={{ color: 'var(--slate-900)' }}>{departmentItem.count}</b></td>
+                                                <td>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                                                        <div style={{ flex: 1, height: 8, background: '#F1F5F9', borderRadius: 99, overflow: 'hidden' }}>
+                                                            <div style={{ width: calculationRatio + '%', height: '100%', background: 'var(--primary-green)', borderRadius: 99 }} />
+                                                        </div>
+                                                        <span style={{ fontSize: '0.8rem', color: '#64748B', width: 40, fontWeight: 600 }}>
+                                                            {calculationRatio}%
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </React.Fragment>
+            );
+        }
+
+        // ── ROUTE PAGE: Asset Registry ────────────────────────────────
+        function RouteAssets({ triggerToast, currentUserSession }) {
+            const [assetList, setAssetList] = useState([]);
+            const [isDataLoading, setIsDataLoading] = useState(true);
+            
+            // Filters
+            const [searchParam, setSearchParam] = useState('');
+            const [categoryParam, setCategoryParam] = useState('');
+            const [statusParam, setStatusParam] = useState('');
+            
+            // Modal Triggers
+            const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+            const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+            const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+            
+            // Selected Data
+            const [targetedAsset, setTargetedAsset] = useState(null);
+            const [detailedAssetInformation, setDetailedAssetInformation] = useState(null);
+
+            const synchronizeAssetLedger = useCallback(async () => {
+                setIsDataLoading(true);
+                const queryParameters = new URLSearchParams();
+                
+                if (searchParam) queryParameters.set('search', searchParam);
+                if (categoryParam) queryParameters.set('category', categoryParam);
+                if (statusParam) queryParameters.set('status', statusParam);
+                
+                try {
+                    const registryData = await performApiRequest('/assets?' + queryParameters.toString());
+                    setAssetList(registryData?.assets || []);
+                } catch (error) {
+                    console.error("Asset Ledger Fetch Error:", error);
+                } finally {
+                    setIsDataLoading(false);
+                }
+            }, [searchParam, categoryParam, statusParam]);
+
+            useEffect(() => {
+                synchronizeAssetLedger();
+            }, [synchronizeAssetLedger]);
+
+            function extractBadgeStyle(statusText) {
+                const styleMapping = {
+                    'Active': 'type-active',
+                    'Transferred': 'type-transferred',
+                    'Inactive': 'type-inactive',
+                    'Disposed': 'type-disposed',
+                    'Under Maintenance': 'type-maintenance'
+                };
+                return 'status-badge ' + (styleMapping[statusText] || 'status-badge');
+            }
+
+            // Verify Permissions
+            const isAuthorizedWriter = currentUserSession.role === 'admin' || currentUserSession.role === 'manager';
+            const isAuthorizedAuditor = currentUserSession.role === 'admin' || currentUserSession.role === 'auditor' || currentUserSession.role === 'manager';
+
+            async function displayDetailedAssetInformation(assetIdReference) {
+                try {
+                    const fullAssetData = await performApiRequest('/assets/' + assetIdReference);
+                    setDetailedAssetInformation(fullAssetData);
+                } catch (error) {
+                    console.error("Detailed History Fetch Error:", error);
+                }
+            }
+
+            return (
+                <React.Fragment>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                        <div>
+                            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--slate-900)' }}>Official Asset Registry</h2>
+                            <p style={{ fontSize: '0.9rem', color: '#64748B', marginTop: 4 }}>Manage and track all verifiable state properties</p>
+                        </div>
+                        {isAuthorizedWriter && (
+                            <button className="btn-action btn-theme-green" onClick={() => setIsRegisterModalOpen(true)}>
+                                <LucideIcon iconName="plus" iconSize={18} /> Register New Asset
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Filter and Search Bar */}
+                    <div className="filter-controls-bar">
+                        <div className="input-field-group filter-search-box">
+                            <div style={{ position: 'relative' }}>
+                                <LucideIcon 
+                                    iconName="search" 
+                                    iconSize={18} 
+                                    inlineStyles={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}
+                                />
+                                <input 
+                                    className="filter-input"
+                                    placeholder="Search by Identification Number or Name..." 
+                                    value={searchParam} 
+                                    onChange={(event) => setSearchParam(event.target.value)} 
+                                    onKeyDown={(event) => event.key === 'Enter' && synchronizeAssetLedger()} 
+                                    style={{ paddingLeft: '2.5rem', width: '100%' }}
+                                />
+                            </div>
+                        </div>
+                        <select className="filter-input" value={categoryParam} onChange={(event) => setCategoryParam(event.target.value)}>
+                            <option value="">All Category Filters</option>
+                            {['Building', 'Vehicle', 'Equipment', 'Infrastructure', 'Land', 'Technology', 'Furniture', 'Other'].map(categoryType => (
+                                <option key={categoryType} value={categoryType}>{categoryType}</option>
+                            ))}
+                        </select>
+                        <select className="filter-input" value={statusParam} onChange={(event) => setStatusParam(event.target.value)}>
+                            <option value="">All Status Conditions</option>
+                            {['Active', 'Inactive', 'Under Maintenance', 'Disposed', 'Transferred'].map(statusCondition => (
+                                <option key={statusCondition} value={statusCondition}>{statusCondition}</option>
+                            ))}
+                        </select>
+                        <button className="btn-action btn-theme-outline" onClick={synchronizeAssetLedger}>Execute Query</button>
+                    </div>
+
+                    {/* Registry Table */}
+                    <div className="panel-card">
+                        <div className="panel-card-header">
+                            <h3><LucideIcon iconName="list" /> Comprehensive Asset List ({assetList.length})</h3>
+                            <button className="btn-action btn-theme-outline btn-small-size" onClick={synchronizeAssetLedger}>
+                                <LucideIcon iconName="refresh-cw" iconSize={14} /> Refresh Ledger
+                            </button>
+                        </div>
+                        <div className="table-responsive-wrapper">
+                            {isDataLoading ? (
+                                <div className="data-loading-state">
+                                    <LucideIcon iconName="loader-2" customClass="spinner-animation" iconSize={32} /> 
+                                    Synchronizing with Blockchain Ledger...
+                                </div>
+                            ) : (
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Asset ID</th>
+                                            <th>Asset Name</th>
+                                            <th>Category</th>
+                                            <th>Holding Department</th>
+                                            <th>Assessed Value</th>
+                                            <th>Current Owner</th>
+                                            <th>Status State</th>
+                                            <th>Mined Block</th>
+                                            <th>Execution Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {assetList.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={9} style={{ textAlign: 'center', padding: '4rem', color: '#64748B' }}>
+                                                    Your query matched no active records within the registry parameters.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            assetList.map(assetRecord => (
+                                                <tr key={assetRecord.asset_id}>
+                                                    <td>
+                                                        <code style={{ fontSize: '0.8rem', background: '#F1F5F9', padding: '0.3rem 0.5rem', borderRadius: '6px', color: 'var(--dark-green)' }}>
+                                                            {assetRecord.asset_id}
+                                                        </code>
+                                                    </td>
+                                                    <td><b style={{ color: 'var(--slate-900)' }}>{assetRecord.asset_name}</b></td>
+                                                    <td><span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--slate-700)' }}>{assetRecord.category}</span></td>
+                                                    <td style={{ fontSize: '0.85rem' }}>{assetRecord.department}</td>
+                                                    <td style={{ fontWeight: 700, color: 'var(--slate-900)' }}>{formatNaira(assetRecord.asset_value)}</td>
+                                                    <td style={{ fontSize: '0.85rem' }}>{assetRecord.owner}</td>
+                                                    <td><span className={extractBadgeStyle(assetRecord.status)}>{assetRecord.status}</span></td>
+                                                    <td style={{ fontSize: '0.8rem', color: '#64748B' }}>#{assetRecord.block_index}</td>
+                                                    <td>
+                                                        <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                                            <button 
+                                                                className="btn-action btn-theme-outline btn-icon-only" 
+                                                                onClick={() => displayDetailedAssetInformation(assetRecord.asset_id)} 
+                                                                title="Inspect Immutable Record"
+                                                            >
+                                                                <LucideIcon iconName="eye" iconSize={16} />
+                                                            </button>
+                                                            
+                                                            {isAuthorizedWriter && (
+                                                                <button 
+                                                                    className="btn-action btn-theme-outline btn-icon-only" 
+                                                                    onClick={() => { setTargetedAsset(assetRecord); setIsTransferModalOpen(true); }} 
+                                                                    title="Execute Contract: Transfer Asset"
+                                                                >
+                                                                    <LucideIcon iconName="arrow-right-left" iconSize={16} />
+                                                                </button>
+                                                            )}
+                                                            
+                                                            {isAuthorizedAuditor && (
+                                                                <button 
+                                                                    className="btn-action btn-theme-outline btn-icon-only" 
+                                                                    onClick={() => { setTargetedAsset(assetRecord); setIsAuditModalOpen(true); }} 
+                                                                    title="Execute Contract: Record State Audit"
+                                                                >
+                                                                    <LucideIcon iconName="clipboard-check" iconSize={16} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Dynamic Modal Loading Container */}
+                    {isRegisterModalOpen && (
+                        <ComponentModalRegister 
+                            closeAction={() => setIsRegisterModalOpen(false)} 
+                            successAction={() => {
+                                setIsRegisterModalOpen(false);
+                                synchronizeAssetLedger();
+                                triggerToast('Government asset secured onto blockchain network.', 'toast-success', 'check-circle');
+                            }} 
+                            triggerToast={triggerToast} 
+                        />
+                    )}
+                    
+                    {isTransferModalOpen && targetedAsset && (
+                        <ComponentModalTransfer 
+                            referencedAsset={targetedAsset} 
+                            closeAction={() => setIsTransferModalOpen(false)} 
+                            successAction={() => {
+                                setIsTransferModalOpen(false);
+                                synchronizeAssetLedger();
+                                triggerToast('Property transfer contract validated and confirmed.', 'toast-success', 'arrow-right-left');
+                            }} 
+                            triggerToast={triggerToast} 
+                        />
+                    )}
+                    
+                    {isAuditModalOpen && targetedAsset && (
+                        <ComponentModalAudit 
+                            referencedAsset={targetedAsset} 
+                            closeAction={() => setIsAuditModalOpen(false)} 
+                            successAction={() => {
+                                setIsAuditModalOpen(false);
+                                triggerToast('Audit validation appended to asset history block.', 'toast-success', 'clipboard-check');
+                            }} 
+                            triggerToast={triggerToast} 
+                        />
+                    )}
+                    
+                    {detailedAssetInformation && (
+                        <ComponentModalDetails 
+                            ledgerData={detailedAssetInformation} 
+                            closeAction={() => setDetailedAssetInformation(null)} 
+                        />
+                    )}
+                </React.Fragment>
+            );
+        }
+
+        // ── DIALOG COMPONENT: Asset Registration ──────────────────────
+        function ComponentModalRegister({ closeAction, successAction, triggerToast }) {
+            const [formInputs, setFormInputs] = useState({
+                asset_name: '',
+                category: 'Building',
+                department: '',
+                asset_value: '',
+                owner: '',
+                status: 'Active',
+                description: ''
+            });
+            const [isSubmissionActive, setIsSubmissionActive] = useState(false);
+            
+            const handleTextChange = (keyIdentifier) => (eventElement) => {
+                setFormInputs(previousInputs => ({ ...previousInputs, [keyIdentifier]: eventElement.target.value }));
+            };
+
+            async function performRegistrationSubmit() {
+                if (!formInputs.asset_name || !formInputs.department || !formInputs.asset_value || !formInputs.owner) {
+                    triggerToast('Critical data missing. Please fill required components.', 'toast-error', 'alert-circle');
+                    return;
+                }
+                
+                setIsSubmissionActive(true);
+                try {
+                    const submitResponse = await performApiRequest('/assets/register', 'POST', formInputs);
+                    if (submitResponse?.success) {
+                        successAction();
+                    } else {
+                        triggerToast(submitResponse?.error || 'Registration failed at node level.', 'toast-error', 'x-circle');
+                    }
+                } catch (submissionError) {
+                    console.error("Contract Error:", submissionError);
+                } finally {
+                    setIsSubmissionActive(false);
+                }
+            }
+
+            return (
+                <div className="modal-backdrop" onClick={eventElement => eventElement.target === eventElement.currentTarget && closeAction()}>
+                    <div className="modal-window">
+                        <div className="modal-header">
+                            <h3><LucideIcon iconName="file-plus" /> Execute Asset Registration Contract</h3>
+                            <button className="btn-modal-close" onClick={closeAction}>
+                                <LucideIcon iconName="x" />
+                            </button>
+                        </div>
+                        <div className="modal-content-area">
+                            <div className="input-grid-layout">
+                                <div className="input-field-group span-full">
+                                    <label>Official Government Nomenclature *</label>
+                                    <input 
+                                        className="input-control"
+                                        placeholder="e.g. Ministry Hilux Carrier - TRK04" 
+                                        value={formInputs.asset_name} 
+                                        onChange={handleTextChange('asset_name')} 
+                                    />
+                                </div>
+                                <div className="input-field-group">
+                                    <label>Classification Set *</label>
+                                    <select className="input-control" value={formInputs.category} onChange={handleTextChange('category')}>
+                                        {['Building', 'Vehicle', 'Equipment', 'Infrastructure', 'Land', 'Technology', 'Furniture', 'Other'].map(classification => (
+                                            <option key={classification} value={classification}>{classification}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="input-field-group">
+                                    <label>Assessed Financial Value (NGN) *</label>
+                                    <input 
+                                        className="input-control"
+                                        type="number" 
+                                        placeholder="Enter monetary configuration..." 
+                                        value={formInputs.asset_value} 
+                                        onChange={handleTextChange('asset_value')} 
+                                    />
+                                </div>
+                                <div className="input-field-group">
+                                    <label>Owning State Department *</label>
+                                    <input 
+                                        className="input-control"
+                                        placeholder="e.g. Jigawa Ministry of Works" 
+                                        value={formInputs.department} 
+                                        onChange={handleTextChange('department')} 
+                                    />
+                                </div>
+                                <div className="input-field-group">
+                                    <label>Registered Primary Custodian *</label>
+                                    <input 
+                                        className="input-control"
+                                        placeholder="e.g. Finance Sector Headquarters" 
+                                        value={formInputs.owner} 
+                                        onChange={handleTextChange('owner')} 
+                                    />
+                                </div>
+                                <div className="input-field-group span-full">
+                                    <label>Initial Lifecycle State</label>
+                                    <select className="input-control" value={formInputs.status} onChange={handleTextChange('status')}>
+                                        {['Active', 'Inactive', 'Under Maintenance', 'Disposed', 'Transferred'].map(lifecycleState => (
+                                            <option key={lifecycleState} value={lifecycleState}>{lifecycleState}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+                                <button className="btn-action btn-theme-outline" onClick={closeAction}>Abandon Contract</button>
+                                <button className="btn-action btn-theme-green" onClick={performRegistrationSubmit} disabled={isSubmissionActive}>
+                                    {isSubmissionActive ? (
+                                        <React.Fragment>
+                                            <LucideIcon iconName="loader-2" customClass="spinner-animation" /> Encrypting Hash...
+                                        </React.Fragment>
+                                    ) : (
+                                        <React.Fragment>
+                                            <LucideIcon iconName="link" /> Issue Record to Blockchain
+                                        </React.Fragment>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ── DIALOG COMPONENT: Asset Transfer ────────────────────────
+        function ComponentModalTransfer({ referencedAsset, closeAction, successAction, triggerToast }) {
+            const [transferInputs, setTransferInputs] = useState({
+                from_owner: referencedAsset.owner,
+                to_owner: '',
+                reason: ''
+            });
+            const [isTransferring, setIsTransferring] = useState(false);
+            
+            const processTransferChange = (keyIdentifier) => (eventElement) => {
+                setTransferInputs(previousInputs => ({ ...previousInputs, [keyIdentifier]: eventElement.target.value }));
+            };
+
+            async function executeTransferContract() {
+                if (!transferInputs.to_owner || !transferInputs.reason) {
+                    triggerToast('Missing mandatory transfer rationale or destination.', 'toast-error', 'alert-circle');
+                    return;
+                }
+                
+                setIsTransferring(true);
+                try {
+                    const transferResponse = await performApiRequest('/assets/transfer', 'POST', { ...transferInputs, asset_id: referencedAsset.asset_id });
+                    if (transferResponse?.success) {
+                        successAction();
+                    } else {
+                        triggerToast(transferResponse?.error || 'Transfer signature rejected.', 'toast-error', 'x-circle');
+                    }
+                } catch (error) {
+                    console.error("Transfer error exception:", error);
+                } finally {
+                    setIsTransferring(false);
+                }
+            }
+
+            return (
+                <div className="modal-backdrop" onClick={eventElement => eventElement.target === eventElement.currentTarget && closeAction()}>
+                    <div className="modal-window">
+                        <div className="modal-header">
+                            <h3><LucideIcon iconName="arrow-right-left" /> Execute Reallocation Contract</h3>
+                            <button className="btn-modal-close" onClick={closeAction}>
+                                <LucideIcon iconName="x" />
+                            </button>
+                        </div>
+                        <div className="modal-content-area">
+                            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: '1rem', marginBottom: '1.5rem', fontSize: '0.9rem', color: '#334155' }}>
+                                <strong style={{ color: '#0F172A' }}>Asset Selected for Modification:</strong> {referencedAsset.asset_name} 
+                                <code style={{ color: 'var(--primary-green)' }}> ({referencedAsset.asset_id})</code>
+                            </div>
+                            
+                            <div className="input-grid-layout">
+                                <div className="input-field-group">
+                                    <label>Originating Entity (Current)</label>
+                                    <input 
+                                        className="input-control"
+                                        value={transferInputs.from_owner} 
+                                        onChange={processTransferChange('from_owner')} 
+                                        readOnly 
+                                        style={{ background: '#F1F5F9', color: '#64748B' }} 
+                                    />
+                                </div>
+                                <div className="input-field-group">
+                                    <label>Receiving Entity (Destination) *</label>
+                                    <input 
+                                        className="input-control"
+                                        placeholder="Identify recipient institution" 
+                                        value={transferInputs.to_owner} 
+                                        onChange={processTransferChange('to_owner')} 
+                                    />
+                                </div>
+                                <div className="input-field-group span-full">
+                                    <label>Documented Governance Authorization *</label>
+                                    <textarea 
+                                        className="input-control"
+                                        rows={3} 
+                                        placeholder="Enter legal rationale or executive order details for reallocation sequence..." 
+                                        value={transferInputs.reason} 
+                                        onChange={processTransferChange('reason')} 
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+                                <button className="btn-action btn-theme-outline" onClick={closeAction}>Abort Transfer</button>
+                                <button className="btn-action btn-theme-green" onClick={executeTransferContract} disabled={isTransferring}>
+                                    {isTransferring ? (
+                                        <React.Fragment>
+                                            <LucideIcon iconName="loader-2" customClass="spinner-animation" /> Compiling Block...
+                                        </React.Fragment>
+                                    ) : (
+                                        <React.Fragment>
+                                            <LucideIcon iconName="arrow-right-left" /> Formulate Transfer Signature
+                                        </React.Fragment>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ── DIALOG COMPONENT: Asset Audit ───────────────────────────
+        function ComponentModalAudit({ referencedAsset, closeAction, successAction, triggerToast }) {
+            const [auditInputs, setAuditInputs] = useState({
+                audit_type: 'Routine',
+                findings: ''
+            });
+            const [isAuditing, setIsAuditing] = useState(false);
+            
+            const handleAuditInput = (keyIdentifier) => (eventElement) => {
+                setAuditInputs(previousData => ({ ...previousData, [keyIdentifier]: eventElement.target.value }));
+            };
+
+            async function confirmAuditExecution() {
+                if (!auditInputs.findings) {
+                    triggerToast('Inspector findings narrative must be supplied.', 'toast-error', 'alert-circle');
+                    return;
+                }
+                
+                setIsAuditing(true);
+                try {
+                    const auditExecution = await performApiRequest('/assets/audit', 'POST', { ...auditInputs, asset_id: referencedAsset.asset_id });
+                    if (auditExecution?.success) {
+                        successAction();
+                    } else {
+                        triggerToast(auditExecution?.error || 'Validation log recording failed.', 'toast-error', 'x-circle');
+                    }
+                } catch (error) {
+                    console.error("Audit processing failure:", error);
+                } finally {
+                    setIsAuditing(false);
+                }
+            }
+
+            return (
+                <div className="modal-backdrop" onClick={eventElement => eventElement.target === eventElement.currentTarget && closeAction()}>
+                    <div className="modal-window">
+                        <div className="modal-header">
+                            <h3><LucideIcon iconName="clipboard-check" /> Issue Cryptographic Audit</h3>
+                            <button className="btn-modal-close" onClick={closeAction}>
+                                <LucideIcon iconName="x" />
+                            </button>
+                        </div>
+                        <div className="modal-content-area">
+                            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: '1rem', marginBottom: '1.5rem', fontSize: '0.9rem', color: '#334155' }}>
+                                <strong style={{ color: '#0F172A' }}>Asset Interrogation Target:</strong> {referencedAsset.asset_name} 
+                                <code style={{ color: 'var(--primary-green)' }}> ({referencedAsset.asset_id})</code>
+                            </div>
+                            
+                            <div className="input-grid-layout">
+                                <div className="input-field-group span-full">
+                                    <label>Investigation Type Framework</label>
+                                    <select className="input-control" value={auditInputs.audit_type} onChange={handleAuditInput('audit_type')}>
+                                        {['Routine', 'Special', 'Compliance', 'Disposal', 'Valuation'].map(auditStyle => (
+                                            <option key={auditStyle} value={auditStyle}>{auditStyle}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="input-field-group span-full">
+                                    <label>Investigative Log & Direct Observations *</label>
+                                    <textarea 
+                                        className="input-control"
+                                        rows={5} 
+                                        placeholder="Record the official physical observations and status checks determined during investigation..." 
+                                        value={auditInputs.findings} 
+                                        onChange={handleAuditInput('findings')} 
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+                                <button className="btn-action btn-theme-outline" onClick={closeAction}>Withdraw Form</button>
+                                <button className="btn-action btn-theme-gold" onClick={confirmAuditExecution} disabled={isAuditing}>
+                                    {isAuditing ? (
+                                        <React.Fragment>
+                                            <LucideIcon iconName="loader-2" customClass="spinner-animation" /> Executing Hash...
+                                        </React.Fragment>
+                                    ) : (
+                                        <React.Fragment>
+                                            <LucideIcon iconName="link" /> Finalize Audit Immutably
+                                        </React.Fragment>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ── DIALOG COMPONENT: View Asset Details ────────────────────
+        function ComponentModalDetails({ ledgerData, closeAction }) {
+            const { asset: targetAsset, history: transactionHistory } = ledgerData;
+            
+            if (!targetAsset) return null;
+            
+            function resolveActionSymbol(actionIdentifier) {
+                if (actionIdentifier === 'REGISTER_ASSET') return 'file-plus';
+                if (actionIdentifier === 'TRANSFER_ASSET') return 'arrow-right-left';
+                if (actionIdentifier === 'AUDIT_ASSET') return 'clipboard-check';
+                return 'link';
+            }
+
+            return (
+                <div className="modal-backdrop" onClick={eventElement => eventElement.target === eventElement.currentTarget && closeAction()}>
+                    <div className="modal-window">
+                        <div className="modal-header">
+                            <h3><LucideIcon iconName="landmark" /> {targetAsset.asset_name}</h3>
+                            <button className="btn-modal-close" onClick={closeAction}>
+                                <LucideIcon iconName="x" />
+                            </button>
+                        </div>
+                        <div className="modal-content-area">
+                            
+                            {/* Properties Readout Block */}
+                            <div className="layout-grid-dual" style={{ marginBottom: '2rem' }}>
+                                {[
+                                    ['Global Asset ID', targetAsset.asset_id],
+                                    ['Operating Category', targetAsset.category],
+                                    ['Department Control', targetAsset.department],
+                                    ['Executive Custodian', targetAsset.owner],
+                                    ['Valuation Figure', formatNaira(targetAsset.asset_value)],
+                                    ['Active Parameter', targetAsset.status],
+                                    ['Blockchain Pointer', targetAsset.block_index],
+                                    ['Genesis Marker', formatDisplayDate(targetAsset.registration_date)]
+                                ].map(([dataLabel, dataValue]) => (
+                                    <div key={dataLabel} style={{ background: '#F8FAFC', borderRadius: 10, padding: '1rem', border: '1px solid #F1F5F9' }}>
+                                        <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+                                            {dataLabel}
+                                        </div>
+                                        <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0F172A' }}>
+                                            {dataValue}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            {/* Ledger Historical Lineage */}
+                            <div style={{ marginBottom: '1rem', fontWeight: 800, fontSize: '1.05rem', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <LucideIcon iconName="git-commit-vertical" /> 
+                                Chronological Ledger Trace ({transactionHistory?.length || 0} iterations)
+                            </div>
+                            
+                            <div style={{ position: 'relative', paddingLeft: '1.5rem' }}>
+                                <div style={{ position: 'absolute', left: '7px', top: 0, bottom: 0, width: '2px', background: '#E2E8F0' }} />
+                                
+                                {(transactionHistory || []).map((actionSequence, sequenceIndex) => {
+                                    const dotIdentityColor = actionSequence.action === 'TRANSFER_ASSET' 
+                                        ? '#3B82F6' 
+                                        : actionSequence.action === 'AUDIT_ASSET' 
+                                            ? '#D4AF37' 
+                                            : 'var(--primary-green)';
+
+                                    return (
+                                        <div key={sequenceIndex} style={{ position: 'relative', paddingBottom: '1.5rem' }}>
+                                            <div style={{ 
+                                                position: 'absolute', left: '-1.5rem', top: '4px', width: '16px', height: '16px', 
+                                                borderRadius: '50%', background: dotIdentityColor, border: '3px solid white', 
+                                                boxShadow: `0 0 0 2px ${dotIdentityColor}` 
+                                            }} />
+                                            
+                                            <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '0.4rem', fontWeight: 600 }}>
+                                                {formatDisplayTimestamp(actionSequence.timestamp)} · Execution Block #{actionSequence.block_index}
+                                            </div>
+                                            
+                                            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '1rem' }}>
+                                                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                                                    <LucideIcon iconName={resolveActionSymbol(actionSequence.action)} iconSize={16} /> 
+                                                    {actionSequence.action?.replace(/_/g, ' ')}
+                                                </div>
+                                                <div style={{ fontSize: '0.85rem', color: '#475569', marginTop: '0.4rem' }}>
+                                                    <strong>Executing Key:</strong> {actionSequence.actor} · <strong>Tx Logic ID:</strong> {actionSequence.tx_id}
+                                                </div>
+                                                <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#64748B', marginTop: '0.8rem', wordBreak: 'break-all', background: '#F1F5F9', padding: '0.5rem', borderRadius: '6px' }}>
+                                                    SHA-256 Output Anchor: {actionSequence.block_hash}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ── ROUTE PAGE: Blockchain Ledger View ────────────────────────
+        function RouteChainExplorer({ triggerToast }) {
+            const [blockchainData, setBlockchainData] = useState([]);
+            const [networkStats, setNetworkStats] = useState(null);
+            const [pageCursor, setPageCursor] = useState(1);
+            const [totalRecords, setTotalRecords] = useState(0);
+            const [validationReport, setValidationReport] = useState(null);
+            const [isFetchingData, setIsFetchingData] = useState(true);
+            const [expandedBlockIndex, setExpandedBlockIndex] = useState(null);
+            const [isMiningOperationActive, setIsMiningOperationActive] = useState(false);
+            const ITEMS_PER_PAGE = 10;
+
+            const pullLedgerManifest = useCallback(async () => {
+                setIsFetchingData(true);
+                try {
+                    const [chainFetch, metricsFetch] = await Promise.all([
+                        performApiRequest(`/blockchain/chain?page=${pageCursor}&per_page=${ITEMS_PER_PAGE}`),
+                        performApiRequest('/blockchain/stats')
+                    ]);
+                    
+                    setBlockchainData(chainFetch?.chain || []);
+                    setTotalRecords(chainFetch?.total || 0);
+                    setNetworkStats(metricsFetch);
+                } catch (apiError) {
+                    console.error("Ledger Interrogation Error:", apiError);
+                } finally {
+                    setIsFetchingData(false);
+                }
+            }, [pageCursor]);
+
+            useEffect(() => {
+                pullLedgerManifest();
+            }, [pullLedgerManifest]);
+
+            async function triggerNetworkValidation() {
+                try {
+                    const diagnosticReport = await performApiRequest('/blockchain/validate');
+                    setValidationReport(diagnosticReport);
+                    
+                    if (diagnosticReport?.valid) {
+                        triggerToast('Distributed node architecture integrity cryptographically proven.', 'toast-success', 'shield-check');
+                    } else {
+                        triggerToast('System corruption or foreign transaction detected within node chain.', 'toast-error', 'alert-triangle');
+                    }
+                } catch (error) {
+                    console.error("Diagnostic Validation Error:", error);
+                }
+            }
+
+            async function processNewBlockMining() {
+                const operatorUser = fetchUserData();
+                if (operatorUser.role !== 'admin') {
+                    triggerToast('Only administrative entities can direct mining computations.', 'toast-error', 'lock');
+                    return;
+                }
+                
+                setIsMiningOperationActive(true);
+                try {
+                    const miningCommand = await performApiRequest('/blockchain/mine', 'POST', {});
+                    if (miningCommand?.success) {
+                        triggerToast(`Proof-of-Work successful. Block Index #${miningCommand.block?.index} established.`, 'toast-success', 'box');
+                        pullLedgerManifest();
+                    } else {
+                        triggerToast(miningCommand?.message || 'Mempool exhibits no pending requests for computation.', 'toast-info', 'info');
+                    }
+                } catch (computationError) {
+                    console.error("Proof-of-Work Computing Error:", computationError);
+                } finally {
+                    setIsMiningOperationActive(false);
+                }
+            }
+
+            const calculatedTotalPages = Math.ceil(totalRecords / ITEMS_PER_PAGE) || 1;
+
+            return (
+                <React.Fragment>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                        <div>
+                            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0F172A' }}>Decentralized Root Ledger</h2>
+                            <p style={{ fontSize: '0.9rem', color: '#64748B', marginTop: 4 }}>
+                                JIGAWA-MAINNET Infrastructure · SHA-256 Proof-of-Work Operations
+                            </p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button className="btn-action btn-theme-outline" onClick={triggerNetworkValidation}>
+                                <LucideIcon iconName="shield-check" iconSize={18} /> Initiate Cryptographic Check
+                            </button>
+                            <button className="btn-action btn-theme-gold" onClick={processNewBlockMining} disabled={isMiningOperationActive}>
+                                {isMiningOperationActive ? (
+                                    <React.Fragment>
+                                        <LucideIcon iconName="loader-2" customClass="spinner-animation" /> Distributing Logic...
+                                    </React.Fragment>
+                                ) : (
+                                    <React.Fragment>
+                                        <LucideIcon iconName="pickaxe" /> Mine Waiting Operations
+                                    </React.Fragment>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Operational Statistics Overlay */}
+                    {networkStats && (
+                        <div className="metrics-grid" style={{ marginBottom: '1.5rem' }}>
+                            <div className="metric-card theme-green">
+                                <div className="metric-header">
+                                    <div className="metric-icon-box"><LucideIcon iconName="box" /></div>
+                                </div>
+                                <div className="metric-main-value">{networkStats.total_blocks}</div>
+                                <div className="metric-sub-label">Verified Block Anchors</div>
+                            </div>
+                            <div className="metric-card theme-gold">
+                                <div className="metric-header">
+                                    <div className="metric-icon-box"><LucideIcon iconName="arrow-right-left" /></div>
+                                </div>
+                                <div className="metric-main-value">{networkStats.total_transactions}</div>
+                                <div className="metric-sub-label">Network Transactions</div>
+                            </div>
+                            <div className="metric-card theme-blue">
+                                <div className="metric-header">
+                                    <div className="metric-icon-box"><LucideIcon iconName="hourglass" /></div>
+                                </div>
+                                <div className="metric-main-value">{networkStats.pending_transactions}</div>
+                                <div className="metric-sub-label">Mempool Backlog</div>
+                            </div>
+                            <div className="metric-card theme-purple">
+                                <div className="metric-header">
+                                    <div className="metric-icon-box"><LucideIcon iconName="cpu" /></div>
+                                </div>
+                                <div className="metric-main-value" style={{ fontSize: '1.1rem', marginTop: '0.8rem' }}>
+                                    {networkStats.consensus}
+                                </div>
+                                <div className="metric-sub-label">Validation Framework</div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Diagnostic Feedback Display */}
+                    {validationReport && (
+                        <div style={{ 
+                            padding: '1rem 1.5rem', borderRadius: 12, 
+                            background: validationReport.valid ? '#F0FDF4' : '#FEF2F2', 
+                            border: '1px solid ' + (validationReport.valid ? '#BBF7D0' : '#FECACA'), 
+                            marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: 600, 
+                            color: validationReport.valid ? '#166534' : '#B91C1C', 
+                            display: 'flex', alignItems: 'center', gap: '0.8rem' 
+                        }}>
+                            <LucideIcon iconName={validationReport.valid ? 'shield-check' : 'alert-triangle'} iconSize={24} />
+                            {validationReport.valid 
+                                ? `System integrity confirmed: All ${validationReport.chain_length} distributed blocks verify sequentially.` 
+                                : ('Critical discrepancy noted at runtime: ' + validationReport.issues?.join(', '))
+                            }
+                        </div>
+                    )}
+
+                    <div className="panel-card">
+                        <div className="panel-card-header">
+                            <h3><LucideIcon iconName="layers" /> Cryptographic Block Hierarchy</h3>
+                            <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 600 }}>
+                                View Segment {pageCursor} / {calculatedTotalPages}
+                            </span>
+                        </div>
+                        <div className="panel-card-body">
+                            {isFetchingData ? (
+                                <div className="data-loading-state">
+                                    <LucideIcon iconName="loader-2" customClass="spinner-animation" iconSize={32} /> 
+                                    Downloading verifiable blocks from nodes...
+                                </div>
+                            ) : (
+                                blockchainData.map(blockSignature => (
+                                    <div 
+                                        key={blockSignature.index} 
+                                        className="ledger-block-item" 
+                                        onClick={() => setExpandedBlockIndex(expandedBlockIndex === blockSignature.index ? null : blockSignature.index)}
+                                    >
+                                        <div className="block-header-info">
+                                            <span className="block-index-pill">
+                                                <LucideIcon iconName="box" iconSize={14} /> Mined Hash #{blockSignature.index}
+                                            </span>
+                                            <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 600 }}>
+                                                <LucideIcon iconName="clock" iconSize={14} inlineStyles={{ verticalAlign: 'middle', marginRight: '4px' }} /> 
+                                                {formatDisplayTimestamp(blockSignature.timestamp_human)}
+                                            </span>
+                                        </div>
+                                        <div className="block-hash-text">
+                                            <LucideIcon iconName="hash" iconSize={14} inlineStyles={{ verticalAlign: 'middle', marginRight: '4px' }} /> 
+                                            {blockSignature.hash}
+                                        </div>
+                                        <div className="block-metadata">
+                                            <span><LucideIcon iconName="file-text" iconSize={14} /> Contained TX: {blockSignature.tx_count}</span>
+                                            <span><LucideIcon iconName="user" iconSize={14} /> Generated Node: {blockSignature.mined_by}</span>
+                                            <span><LucideIcon iconName="cpu" iconSize={14} /> Algorithm Nonce: {blockSignature.nonce}</span>
+                                        </div>
+                                        
+                                        {/* Dropdown Encrypted Info */}
+                                        {expandedBlockIndex === blockSignature.index && (
+                                            <div style={{ marginTop: '1.2rem', borderTop: '1px solid #E2E8F0', paddingTop: '1.2rem' }}>
+                                                <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem', color: '#0F172A' }}>
+                                                    Cryptographic Tie (Previous Root Hash):
+                                                </div>
+                                                <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#64748B', wordBreak: 'break-all', marginBottom: '1rem', background: '#F1F5F9', padding: '0.5rem', borderRadius: '6px' }}>
+                                                    {blockSignature.previous_hash}
+                                                </div>
+                                                
+                                                <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem', color: '#0F172A' }}>
+                                                    Payload Contracts ({blockSignature.transactions?.length || 0} recognized):
+                                                </div>
+                                                {(blockSignature.transactions || []).map((internalTx, loopIndex) => (
+                                                    <div key={loopIndex} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '1rem', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+                                                        <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: '0.4rem' }}>
+                                                            {internalTx.action || 'UNDEFINED_BEHAVIOR'}
+                                                        </div>
+                                                        <div style={{ color: '#475569', marginBottom: '0.2rem' }}>
+                                                            <strong>Origin Key:</strong> {internalTx.actor} · <strong>Execution Matrix ID:</strong> {internalTx.tx_id}
+                                                        </div>
+                                                        {internalTx.payload?.asset_id && (
+                                                            <div style={{ color: '#64748B' }}>
+                                                                <strong>Subject Asset Reference:</strong> {internalTx.payload.asset_id}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+
+                            {/* Paginator */}
+                            <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center', marginTop: '1.5rem' }}>
+                                <button 
+                                    className="btn-action btn-theme-outline btn-small-size" 
+                                    disabled={pageCursor <= 1} 
+                                    onClick={() => setPageCursor(p => p - 1)}
+                                >
+                                    Review Preceding Array
+                                </button>
+                                <span style={{ padding: '0.4rem 1rem', fontSize: '0.9rem', color: '#64748B', fontWeight: 600 }}>
+                                    Display Matrix {pageCursor} of {calculatedTotalPages}
+                                </span>
+                                <button 
+                                    className="btn-action btn-theme-outline btn-small-size" 
+                                    disabled={pageCursor >= calculatedTotalPages} 
+                                    onClick={() => setPageCursor(p => p + 1)}
+                                >
+                                    Proceed to Successor
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </React.Fragment>
+            );
+        }
+
+        // ── ROUTE PAGE: System Reporting & Audit Logs ─────────────────
+        function RouteReports({ triggerToast, currentUserContext }) {
+            const [securityLogs, setSecurityLogs] = useState([]);
+            const [isProcessingLogs, setIsProcessingLogs] = useState(true);
+
+            useEffect(() => {
+                if (currentUserContext.role === 'admin' || currentUserContext.role === 'auditor') {
+                    const gatherAuditTrails = async () => {
+                        setIsProcessingLogs(true);
+                        try {
+                            const internalData = await performApiRequest('/reports/audit-log');
+                            setSecurityLogs(internalData?.logs || []);
+                        } catch (requestFailure) {
+                            console.error("Retrieval Failure - Logs:", requestFailure);
+                        } finally {
+                            setIsProcessingLogs(false);
+                        }
+                    };
+                    gatherAuditTrails();
+                } else {
+                    setIsProcessingLogs(false);
+                }
+            }, [currentUserContext.role]);
+
+            async function triggerComprehensiveExport() {
+                const userAuthToken = fetchJwtToken();
+                try {
+                    const documentResponse = await fetch(FLASK_API_BASE + '/reports/export', {
+                        headers: { Authorization: 'Bearer ' + userAuthToken }
+                    });
+                    
+                    if (!documentResponse.ok) {
+                        triggerToast('Compilation of output file failed at source.', 'toast-error', 'alert-circle');
+                        return;
+                    }
+                    
+                    const blobStream = await documentResponse.blob();
+                    const objectLocatorUrl = URL.createObjectURL(blobStream);
+                    
+                    const hiddenAnchor = document.createElement('a');
+                    hiddenAnchor.href = objectLocatorUrl;
+                    hiddenAnchor.download = 'jigawa_state_official_report.json';
+                    hiddenAnchor.click();
+                    
+                    triggerToast('Complete system ledger has been verified and downloaded.', 'toast-success', 'download');
+                } catch (ioError) {
+                    console.error("Export System Failure:", ioError);
+                    triggerToast('Data structuring interrupted. Cannot generate file.', 'toast-error', 'alert-circle');
+                }
+            }
+
+            return (
+                <React.Fragment>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                        <div>
+                            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0F172A' }}>Legal Reports & Audit Intelligence</h2>
+                            <p style={{ fontSize: '0.9rem', color: '#64748B', marginTop: 4 }}>Uncover comprehensive system trails and secure backups</p>
+                        </div>
+                        <button className="btn-action btn-theme-gold" onClick={triggerComprehensiveExport}>
+                            <LucideIcon iconName="download" iconSize={18} /> Compile Full Master Export
+                        </button>
+                    </div>
+
+                    {(currentUserContext.role === 'admin' || currentUserContext.role === 'auditor') ? (
+                        <div className="panel-card">
+                            <div className="panel-card-header">
+                                <h3><LucideIcon iconName="history" /> Immutable System Traffic Log</h3>
+                            </div>
+                            <div className="table-responsive-wrapper">
+                                {isProcessingLogs ? (
+                                    <div className="data-loading-state">
+                                        <LucideIcon iconName="loader-2" customClass="spinner-animation" iconSize={32} /> 
+                                        Structuring backend security trails...
+                                    </div>
+                                ) : (
+                                    <table className="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Chronological Execution</th>
+                                                <th>Executing Operator</th>
+                                                <th>Subsystem Action</th>
+                                                <th>Captured Properties</th>
+                                                <th>Node Origination IP</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {securityLogs.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: '#64748B' }}>
+                                                        The active node log registers no history matching criteria.
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                securityLogs.map((logEntry, indexPointer) => (
+                                                    <tr key={indexPointer}>
+                                                        <td style={{ fontSize: '0.85rem', color: '#64748B', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                                                            {formatDisplayTimestamp(logEntry.created_at)}
+                                                        </td>
+                                                        <td>
+                                                            <b style={{ fontSize: '0.9rem', color: '#0F172A' }}>
+                                                                {logEntry.full_name || logEntry.user_id}
+                                                            </b>
+                                                        </td>
+                                                        <td>
+                                                            <span className="status-badge type-active" style={{ fontSize: '0.75rem' }}>
+                                                                {logEntry.action}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ fontSize: '0.85rem', color: '#475569' }}>
+                                                            {logEntry.detail}
+                                                        </td>
+                                                        <td style={{ fontSize: '0.8rem', color: '#94A3B8', fontFamily: 'monospace' }}>
+                                                            {logEntry.ip_address}
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{ 
+                            background: '#FEFCE8', border: '1px solid #FEF08A', borderRadius: 16, 
+                            padding: '2rem', textAlign: 'center', color: '#A16207', fontWeight: 600, 
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' 
+                        }}>
+                            <LucideIcon iconName="shield-alert" iconSize={48} inlineStyles={{ color: '#CA8A04' }} />
+                            <span style={{ fontSize: '1.1rem' }}>Restricted Operational Sector</span>
+                            <span style={{ fontSize: '0.9rem', color: '#854D0E' }}>
+                                Decryption and viewing of traffic intelligence demands direct Administrator or Auditor clearance variables.
+                            </span>
+                        </div>
+                    )}
+                </React.Fragment>
+            );
+        }
+
+        // ── CORE: Main Router Application Wrapper ─────────────────────
+        function SystemInterfaceApp() {
+            const [activeRoutePath, setActiveRoutePath] = useState('dashboard');
+            const [verifiedUserContext] = useState(fetchUserData());
+            const [notificationQueue, setNotificationQueue] = useState([]);
+            const [isBlockchainVerified, setIsBlockchainVerified] = useState(true);
+
+            useEffect(() => {
+                // Confirm valid authorization context exists
+                if (!localStorage.getItem('jigawa_token')) {
+                    window.location.href = '/';
+                    return;
+                }
+                
+                // Establish initial integrity check logic
+                performApiRequest('/blockchain/validate').then(diagnosisResponse => {
+                    if (diagnosisResponse) {
+                        setIsBlockchainVerified(diagnosisResponse.valid);
+                    }
+                });
+            }, []);
+
+            // Toast Management System
+            function pushSystemNotification(messageOutput, severityState = 'toast-info', graphicSymbol = 'info') {
+                const uniqueDispatchId = Date.now();
+                setNotificationQueue(previousQueue => [
+                    ...previousQueue, 
+                    { id: uniqueDispatchId, messageText: messageOutput, alertType: severityState, iconSymbol: graphicSymbol }
+                ]);
+                
+                setTimeout(() => {
+                    setNotificationQueue(previousQueue => previousQueue.filter(messageItem => messageItem.id !== uniqueDispatchId));
+                }, 4000);
+            }
+
+            function processLogoutDestruction() {
+                performApiRequest('/auth/logout', 'POST', {});
+                localStorage.clear();
+                window.location.href = '/';
+            }
+
+            const sidebarNavigationMatrix = [
+                { id: 'dashboard', label: 'Primary Dashboard', icon: 'layout-dashboard' },
+                { id: 'assets', label: 'Asset Management', icon: 'landmark' },
+                { id: 'blockchain', label: 'Decentralized Network', icon: 'link' },
+                { id: 'reports', label: 'Compliance Reports', icon: 'clipboard-list' },
+            ];
+
+            const internalPageTitles = {
+                dashboard: 'System Overview & Analytics',
+                assets: 'Official Ledger Directory',
+                blockchain: 'JIGAWA-MAINNET Topology',
+                reports: 'Investigation & Audit Diagnostics'
+            };
+
+            return (
+                <div className="app-layout">
+                    
+                    {/* Fixed Navigation Sidebar */}
+                    <aside className="sidebar-navigation">
+                        <div className="sidebar-header">
+                            <div className="sidebar-logo-group">
+                                <div className="sidebar-icon-box">
+                                    <LucideIcon iconName="shield-check" iconSize={24} />
+                                </div>
+                                <div>
+                                    <div className="sidebar-title">State Registry</div>
+                                    <div className="sidebar-subtitle">Operational Control</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <nav className="navigation-links">
+                            <div className="navigation-category-label">Operational Menu</div>
+                            {sidebarNavigationMatrix.map(navElement => (
+                                <button 
+                                    key={navElement.id} 
+                                    className={'nav-button-item' + (activeRoutePath === navElement.id ? ' is-active' : '')} 
+                                    onClick={() => setActiveRoutePath(navElement.id)}
+                                >
+                                    <span className="nav-button-icon">
+                                        <LucideIcon iconName={navElement.icon} iconSize={18} />
+                                    </span>
+                                    {navElement.label}
+                                    
+                                    {/* Security Exception Red Badge Injection */}
+                                    {navElement.id === 'blockchain' && !isBlockchainVerified && (
+                                        <span className="alert-indicator-badge">
+                                            <LucideIcon iconName="alert-triangle" iconSize={12} />
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
+                        </nav>
+                        
+                        <div className="user-profile-section">
+                            <div className="user-avatar-circle">
+                                {(verifiedUserContext.full_name || 'U').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <div className="user-name-text">{verifiedUserContext.full_name || verifiedUserContext.username}</div>
+                                <div className="user-role-text">{verifiedUserContext.role || 'viewer'} · {verifiedUserContext.department || ''}</div>
+                            </div>
+                            <button className="btn-system-logout" onClick={processLogoutDestruction} title="Secure Server Exit">
+                                <LucideIcon iconName="log-out" iconSize={18} />
+                            </button>
+                        </div>
+                    </aside>
+
+                    {/* Operational Workspace Viewport */}
+                    <main className="main-workspace">
+                        <div className="workspace-topbar">
+                            <h2>{internalPageTitles[activeRoutePath]}</h2>
+                            <div className="topbar-control-group">
+                                <div className="system-health-badge">
+                                    <div className="pulse-indicator" />
+                                    {isBlockchainVerified ? 'Cryptographically Verified' : 'Critical Integrity Alert'}
+                                </div>
+                                <span style={{ fontSize: '0.82rem', color: 'var(--slate-700)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <LucideIcon iconName="user-circle" iconSize={18} /> 
+                                    Logged as: {verifiedUserContext.full_name || verifiedUserContext.username}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div className="content-canvas">
+                            {activeRoutePath === 'dashboard' && <RouteDashboard triggerToast={pushSystemNotification} />}
+                            {activeRoutePath === 'assets' && <RouteAssets triggerToast={pushSystemNotification} currentUserSession={verifiedUserContext} />}
+                            {activeRoutePath === 'blockchain' && <RouteChainExplorer triggerToast={pushSystemNotification} />}
+                            {activeRoutePath === 'reports' && <RouteReports triggerToast={pushSystemNotification} currentUserContext={verifiedUserContext} />}
+                        </div>
+                    </main>
+
+                    {/* Global Overlays */}
+                    <NotificationSystem notifications={notificationQueue} />
+                </div>
+            );
+        }
+
+        // Application Render Injection
+        const DOMContainer = document.getElementById('react-application-root');
+        const rootEngine = ReactDOM.createRoot(DOMContainer);
+        rootEngine.render(<SystemInterfaceApp />);
+    </script>
 </body>
 </html>
