@@ -15,6 +15,10 @@
     
     <!-- Chart.js for beautiful graph visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- QR Code generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <style>
         /* Professional typography system */
@@ -1146,6 +1150,9 @@
             const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
             const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
             const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+            const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+            const [isDisposalModalOpen, setIsDisposalModalOpen] = useState(false);
+            const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
             
             // Selected Data
             const [targetedAsset, setTargetedAsset] = useState(null);
@@ -1204,11 +1211,18 @@
                             <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--slate-900)' }}>Official Asset Registry</h2>
                             <p style={{ fontSize: '0.9rem', color: '#64748B', marginTop: 4 }}>Manage and track all verifiable state properties</p>
                         </div>
+                        <div style={{ display:'flex', gap:'0.8rem' }}>
+                        {isAuthorizedWriter && (
+                            <button className="btn-action btn-theme-outline" onClick={() => setIsBulkImportOpen(true)}>
+                                <LucideIcon iconName="upload" iconSize={18} /> Import CSV
+                            </button>
+                        )}
                         {isAuthorizedWriter && (
                             <button className="btn-action btn-theme-green" onClick={() => setIsRegisterModalOpen(true)}>
                                 <LucideIcon iconName="plus" iconSize={18} /> Register New Asset
                             </button>
                         )}
+                        </div>
                     </div>
 
                     {/* Filter and Search Bar */}
@@ -1325,6 +1339,23 @@
                                                                     <LucideIcon iconName="clipboard-check" iconSize={16} />
                                                                 </button>
                                                             )}
+                                                            <button 
+                                                                className="btn-action btn-theme-outline btn-icon-only" 
+                                                                onClick={() => { setTargetedAsset(assetRecord); setIsQRModalOpen(true); }} 
+                                                                title="Generate QR Code"
+                                                            >
+                                                                <LucideIcon iconName="qr-code" iconSize={16} />
+                                                            </button>
+                                                            {isAuthorizedWriter && assetRecord.status !== 'Disposed' && (
+                                                                <button 
+                                                                    className="btn-action btn-theme-outline btn-icon-only" 
+                                                                    style={{ color:'#DC2626' }}
+                                                                    onClick={() => { setTargetedAsset(assetRecord); setIsDisposalModalOpen(true); }} 
+                                                                    title="Request Asset Disposal"
+                                                                >
+                                                                    <LucideIcon iconName="trash-2" iconSize={16} />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -1377,7 +1408,26 @@
                     {detailedAssetInformation && (
                         <ComponentModalDetails 
                             ledgerData={detailedAssetInformation} 
-                            closeAction={() => setDetailedAssetInformation(null)} 
+                            closeAction={() => setDetailedAssetInformation(null)}
+                            currentUserSession={currentUserSession}
+                        />
+                    )}
+                    {isQRModalOpen && targetedAsset && (
+                        <ModalQRCode asset={targetedAsset} closeAction={() => setIsQRModalOpen(false)} />
+                    )}
+                    {isDisposalModalOpen && targetedAsset && (
+                        <ModalDisposal 
+                            asset={targetedAsset} 
+                            closeAction={() => setIsDisposalModalOpen(false)}
+                            successAction={() => { setIsDisposalModalOpen(false); triggerToast('Disposal request submitted for admin approval.', 'toast-info', 'send'); }}
+                            triggerToast={triggerToast}
+                        />
+                    )}
+                    {isBulkImportOpen && (
+                        <ModalBulkImport 
+                            closeAction={() => setIsBulkImportOpen(false)}
+                            successAction={() => { setIsBulkImportOpen(false); synchronizeAssetLedger(); }}
+                            triggerToast={triggerToast}
                         />
                     )}
                 </React.Fragment>
@@ -1698,7 +1748,7 @@
         }
 
         // ── DIALOG COMPONENT: View Asset Details ────────────────────
-        function ComponentModalDetails({ ledgerData, closeAction }) {
+        function ComponentModalDetails({ ledgerData, closeAction, currentUserSession }) {
             const { asset: targetAsset, history: transactionHistory } = ledgerData;
             
             if (!targetAsset) return null;
@@ -1715,9 +1765,16 @@
                     <div className="modal-window">
                         <div className="modal-header">
                             <h3><LucideIcon iconName="landmark" /> {targetAsset.asset_name}</h3>
-                            <button className="btn-modal-close" onClick={closeAction}>
-                                <LucideIcon iconName="x" />
-                            </button>
+                            <div style={{ display:'flex', gap:'0.5rem', alignItems:'center' }}>
+                                {(currentUserSession?.role === 'admin' || currentUserSession?.role === 'auditor') && (
+                                    <button className="btn-action btn-theme-outline btn-small-size" onClick={() => exportAssetPDF(ledgerData)}>
+                                        <LucideIcon iconName="file-down" iconSize={15} /> Export PDF
+                                    </button>
+                                )}
+                                <button className="btn-modal-close" onClick={closeAction}>
+                                    <LucideIcon iconName="x" />
+                                </button>
+                            </div>
                         </div>
                         <div className="modal-content-area">
                             
@@ -1744,8 +1801,11 @@
                                 ))}
                             </div>
                             
+                            {/* Depreciation Tracker */}
+                            <DepreciationPanel asset={targetAsset} />
+
                             {/* Ledger Historical Lineage */}
-                            <div style={{ marginBottom: '1rem', fontWeight: 800, fontSize: '1.05rem', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div style={{ marginBottom: '1rem', fontWeight: 800, fontSize: '1.05rem', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
                                 <LucideIcon iconName="git-commit-vertical" /> 
                                 Chronological Ledger Trace ({transactionHistory?.length || 0} iterations)
                             </div>
@@ -2232,14 +2292,20 @@
                 { id: 'dashboard', label: 'Primary Dashboard', icon: 'layout-dashboard' },
                 { id: 'assets', label: 'Asset Management', icon: 'landmark' },
                 { id: 'blockchain', label: 'Decentralized Network', icon: 'link' },
-                { id: 'reports', label: 'Compliance Reports', icon: 'clipboard-list' },
+                { id: 'approvals', label: 'Pending Approvals', icon: 'clipboard-list', adminOnly: false },
+                { id: 'reports', label: 'Compliance Reports', icon: 'file-text' },
+                { id: 'users', label: 'User Management', icon: 'users', adminOnly: true },
+                { id: 'sessions', label: 'Session Manager', icon: 'monitor', adminOnly: true },
             ];
 
             const internalPageTitles = {
                 dashboard: 'System Overview & Analytics',
                 assets: 'Official Ledger Directory',
                 blockchain: 'JIGAWA-MAINNET Topology',
-                reports: 'Investigation & Audit Diagnostics'
+                approvals: 'Pending Approval Requests',
+                reports: 'Investigation & Audit Diagnostics',
+                users: 'User Management',
+                sessions: 'Active Session Monitor',
             };
 
             return (
@@ -2261,7 +2327,7 @@
                         
                         <nav className="navigation-links">
                             <div className="navigation-category-label">Operational Menu</div>
-                            {sidebarNavigationMatrix.map(navElement => (
+                            {sidebarNavigationMatrix.filter(n => !n.adminOnly || verifiedUserContext.role === 'admin').map(navElement => (
                                 <button 
                                     key={navElement.id} 
                                     className={'nav-button-item' + (activeRoutePath === navElement.id ? ' is-active' : '')} 
@@ -2316,7 +2382,10 @@
                             {activeRoutePath === 'dashboard' && <RouteDashboard triggerToast={pushSystemNotification} />}
                             {activeRoutePath === 'assets' && <RouteAssets triggerToast={pushSystemNotification} currentUserSession={verifiedUserContext} />}
                             {activeRoutePath === 'blockchain' && <RouteChainExplorer triggerToast={pushSystemNotification} />}
+                            {activeRoutePath === 'approvals' && <RouteApprovals triggerToast={pushSystemNotification} currentUserSession={verifiedUserContext} />}
                             {activeRoutePath === 'reports' && <RouteReports triggerToast={pushSystemNotification} currentUserContext={verifiedUserContext} />}
+                            {activeRoutePath === 'users' && verifiedUserContext.role === 'admin' && <RouteUsers triggerToast={pushSystemNotification} currentUserSession={verifiedUserContext} />}
+                            {activeRoutePath === 'sessions' && verifiedUserContext.role === 'admin' && <RouteSessions triggerToast={pushSystemNotification} />}
                         </div>
                     </main>
 
@@ -2325,6 +2394,700 @@
                 </div>
             );
         }
+
+
+        // ══════════════════════════════════════════════════════════
+        // FEATURE 1 — USER MANAGEMENT (CRUD)
+        // ══════════════════════════════════════════════════════════
+        function RouteUsers({ triggerToast, currentUserSession }) {
+            const [users, setUsers] = useState([]);
+            const [isLoading, setIsLoading] = useState(true);
+            const [showModal, setShowModal] = useState(false);
+            const [editTarget, setEditTarget] = useState(null);
+
+            const loadUsers = async () => {
+                setIsLoading(true);
+                const res = await performApiRequest('/users');
+                setUsers(res?.users || []);
+                setIsLoading(false);
+            };
+
+            useEffect(() => { loadUsers(); }, []);
+
+            async function toggleActive(user) {
+                await performApiRequest('/users/' + user.user_id, 'PUT', { active: user.active ? 0 : 1 });
+                triggerToast(`User ${user.active ? 'deactivated' : 'activated'}.`, 'toast-info', 'user');
+                loadUsers();
+            }
+
+            async function deleteUser(user) {
+                if (!window.confirm(`Delete user "${user.username}"? This cannot be undone.`)) return;
+                const res = await performApiRequest('/users/' + user.user_id, 'DELETE');
+                if (res?.success) {
+                    triggerToast('User deleted.', 'toast-success', 'trash-2');
+                    loadUsers();
+                } else {
+                    triggerToast(res?.error || 'Delete failed.', 'toast-error', 'x-circle');
+                }
+            }
+
+            const roleColors = { admin: '#DC2626', manager: '#1D4ED8', auditor: '#D97706', viewer: '#64748B' };
+
+            return (
+                <React.Fragment>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'1.5rem' }}>
+                        <div>
+                            <h2 style={{ fontSize:'1.3rem', fontWeight:800 }}>User Management</h2>
+                            <p style={{ fontSize:'0.9rem', color:'#64748B', marginTop:4 }}>Manage system users, roles and access</p>
+                        </div>
+                        <button className="btn-action btn-theme-green" onClick={() => { setEditTarget(null); setShowModal(true); }}>
+                            <LucideIcon iconName="user-plus" iconSize={18} /> New User
+                        </button>
+                    </div>
+                    <div className="panel-card">
+                        <div className="panel-card-header">
+                            <h3><LucideIcon iconName="users" /> System Users ({users.length})</h3>
+                            <button className="btn-action btn-theme-outline btn-small-size" onClick={loadUsers}>
+                                <LucideIcon iconName="refresh-cw" iconSize={14} /> Refresh
+                            </button>
+                        </div>
+                        <div className="table-responsive-wrapper">
+                            {isLoading ? (
+                                <div className="data-loading-state"><LucideIcon iconName="loader-2" customClass="spinner-animation" iconSize={32} /> Loading users...</div>
+                            ) : (
+                                <table className="data-table">
+                                    <thead><tr><th>Username</th><th>Full Name</th><th>Role</th><th>Department</th><th>Status</th><th>Actions</th></tr></thead>
+                                    <tbody>
+                                        {users.map(u => (
+                                            <tr key={u.user_id}>
+                                                <td><code style={{ fontSize:'0.8rem', background:'#F1F5F9', padding:'0.2rem 0.5rem', borderRadius:6 }}>{u.username}</code></td>
+                                                <td><b>{u.full_name}</b></td>
+                                                <td><span style={{ background: roleColors[u.role] + '20', color: roleColors[u.role], border: '1px solid ' + roleColors[u.role] + '40', padding:'0.2rem 0.7rem', borderRadius:99, fontSize:'0.75rem', fontWeight:700 }}>{u.role}</span></td>
+                                                <td style={{ fontSize:'0.85rem' }}>{u.department}</td>
+                                                <td><span className={'status-badge ' + (u.active ? 'type-active' : 'type-inactive')}>{u.active ? 'Active' : 'Inactive'}</span></td>
+                                                <td>
+                                                    <div style={{ display:'flex', gap:'0.4rem' }}>
+                                                        <button className="btn-action btn-theme-outline btn-icon-only" onClick={() => { setEditTarget(u); setShowModal(true); }} title="Edit"><LucideIcon iconName="pencil" iconSize={15} /></button>
+                                                        <button className="btn-action btn-theme-outline btn-icon-only" onClick={() => toggleActive(u)} title={u.active ? 'Deactivate' : 'Activate'}><LucideIcon iconName={u.active ? 'user-x' : 'user-check'} iconSize={15} /></button>
+                                                        <button className="btn-action btn-theme-outline btn-icon-only" onClick={() => deleteUser(u)} title="Delete" style={{ color:'#DC2626' }}><LucideIcon iconName="trash-2" iconSize={15} /></button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                    {showModal && (
+                        <ModalUserForm
+                            editTarget={editTarget}
+                            closeAction={() => setShowModal(false)}
+                            successAction={() => { setShowModal(false); loadUsers(); triggerToast(editTarget ? 'User updated.' : 'User created.', 'toast-success', 'check-circle'); }}
+                            triggerToast={triggerToast}
+                        />
+                    )}
+                </React.Fragment>
+            );
+        }
+
+        function ModalUserForm({ editTarget, closeAction, successAction, triggerToast }) {
+            const [form, setForm] = useState(editTarget ? {
+                full_name: editTarget.full_name, role: editTarget.role,
+                department: editTarget.department, password: ''
+            } : { username:'', password:'', full_name:'', role:'viewer', department:'' });
+            const [saving, setSaving] = useState(false);
+            const set = k => e => setForm(p => ({...p, [k]: e.target.value}));
+
+            async function save() {
+                setSaving(true);
+                const endpoint = editTarget ? '/users/' + editTarget.user_id : '/users';
+                const method = editTarget ? 'PUT' : 'POST';
+                const payload = editTarget ? { full_name: form.full_name, role: form.role, department: form.department, ...(form.password ? { password: form.password } : {}) } : form;
+                const res = await performApiRequest(endpoint, method, payload);
+                setSaving(false);
+                if (res?.success) { successAction(); }
+                else { triggerToast(res?.error || 'Save failed.', 'toast-error', 'x-circle'); }
+            }
+
+            return (
+                <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && closeAction()}>
+                    <div className="modal-window" style={{ maxWidth:500 }}>
+                        <div className="modal-header">
+                            <h3><LucideIcon iconName="user" /> {editTarget ? 'Edit User' : 'Create New User'}</h3>
+                            <button className="btn-modal-close" onClick={closeAction}><LucideIcon iconName="x" /></button>
+                        </div>
+                        <div className="modal-content-area">
+                            <div className="input-grid-layout">
+                                {!editTarget && (
+                                    <div className="input-field-group span-full">
+                                        <label>Username *</label>
+                                        <input className="input-control" placeholder="e.g. john_doe" value={form.username} onChange={set('username')} />
+                                    </div>
+                                )}
+                                <div className="input-field-group span-full">
+                                    <label>Full Name *</label>
+                                    <input className="input-control" placeholder="Full legal name" value={form.full_name} onChange={set('full_name')} />
+                                </div>
+                                <div className="input-field-group">
+                                    <label>Role *</label>
+                                    <select className="input-control" value={form.role} onChange={set('role')}>
+                                        {['admin','manager','auditor','viewer'].map(r => <option key={r} value={r}>{r}</option>)}
+                                    </select>
+                                </div>
+                                <div className="input-field-group">
+                                    <label>Department *</label>
+                                    <input className="input-control" placeholder="e.g. Finance & Assets" value={form.department} onChange={set('department')} />
+                                </div>
+                                <div className="input-field-group span-full">
+                                    <label>{editTarget ? 'New Password (leave blank to keep)' : 'Password *'}</label>
+                                    <input className="input-control" type="password" placeholder="••••••••" value={form.password} onChange={set('password')} />
+                                </div>
+                            </div>
+                            <div style={{ display:'flex', gap:'1rem', justifyContent:'flex-end', marginTop:'1.5rem' }}>
+                                <button className="btn-action btn-theme-outline" onClick={closeAction}>Cancel</button>
+                                <button className="btn-action btn-theme-green" onClick={save} disabled={saving}>
+                                    {saving ? <React.Fragment><LucideIcon iconName="loader-2" customClass="spinner-animation" /> Saving...</React.Fragment>
+                                            : <React.Fragment><LucideIcon iconName="check" /> {editTarget ? 'Save Changes' : 'Create User'}</React.Fragment>}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // FEATURE 2 — QR CODE MODAL
+        // ══════════════════════════════════════════════════════════
+        function ModalQRCode({ asset, closeAction }) {
+            const qrRef = useRef(null);
+            const qrInstance = useRef(null);
+            const url = window.location.origin + '/verify.html?id=' + encodeURIComponent(asset.asset_id);
+
+            useEffect(() => {
+                if (qrRef.current && !qrInstance.current) {
+                    qrRef.current.innerHTML = '';
+                    qrInstance.current = new QRCode(qrRef.current, {
+                        text: url, width: 220, height: 220,
+                        colorDark: '#005C37', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H
+                    });
+                }
+            }, []);
+
+            function downloadQR() {
+                const canvas = qrRef.current?.querySelector('canvas');
+                if (!canvas) return;
+                const link = document.createElement('a');
+                link.download = asset.asset_id + '_qr.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
+
+            return (
+                <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && closeAction()}>
+                    <div className="modal-window" style={{ maxWidth:400, textAlign:'center' }}>
+                        <div className="modal-header">
+                            <h3><LucideIcon iconName="qr-code" /> Asset QR Code</h3>
+                            <button className="btn-modal-close" onClick={closeAction}><LucideIcon iconName="x" /></button>
+                        </div>
+                        <div className="modal-content-area">
+                            <p style={{ fontSize:'0.85rem', color:'#64748B', marginBottom:'1.2rem' }}><b>{asset.asset_name}</b><br />{asset.asset_id}</p>
+                            <div style={{ display:'flex', justifyContent:'center', marginBottom:'1.2rem' }}>
+                                <div ref={qrRef} style={{ padding:'1rem', background:'#fff', border:'2px solid #E2E8F0', borderRadius:12, display:'inline-block' }} />
+                            </div>
+                            <p style={{ fontSize:'0.75rem', color:'#94A3B8', wordBreak:'break-all', marginBottom:'1.2rem' }}>{url}</p>
+                            <div style={{ display:'flex', gap:'0.8rem', justifyContent:'center' }}>
+                                <button className="btn-action btn-theme-outline" onClick={closeAction}>Close</button>
+                                <button className="btn-action btn-theme-green" onClick={downloadQR}><LucideIcon iconName="download" iconSize={16} /> Download PNG</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // FEATURE 3 — BULK CSV IMPORT MODAL
+        // ══════════════════════════════════════════════════════════
+        function ModalBulkImport({ closeAction, successAction, triggerToast }) {
+            const [rows, setRows] = useState([]);
+            const [importing, setImporting] = useState(false);
+            const [result, setResult] = useState(null);
+
+            function parseCSV(text) {
+                const lines = text.trim().split('\n');
+                const headers = lines[0].split(',').map(h => h.trim().replace(/"/g,''));
+                return lines.slice(1).map(line => {
+                    const vals = line.split(',').map(v => v.trim().replace(/"/g,''));
+                    const obj = {};
+                    headers.forEach((h, i) => obj[h] = vals[i] || '');
+                    return obj;
+                }).filter(r => r.asset_name);
+            }
+
+            function handleFile(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    const parsed = parseCSV(ev.target.result);
+                    setRows(parsed);
+                    setResult(null);
+                };
+                reader.readAsText(file);
+            }
+
+            async function doImport() {
+                if (!rows.length) return;
+                setImporting(true);
+                const res = await performApiRequest('/assets/bulk-register', 'POST', { assets: rows });
+                setImporting(false);
+                setResult(res);
+                if (res?.imported > 0) {
+                    triggerToast(`${res.imported} assets imported successfully.`, 'toast-success', 'check-circle');
+                }
+            }
+
+            return (
+                <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && closeAction()}>
+                    <div className="modal-window" style={{ maxWidth:750 }}>
+                        <div className="modal-header">
+                            <h3><LucideIcon iconName="upload" /> Bulk CSV Import</h3>
+                            <button className="btn-modal-close" onClick={closeAction}><LucideIcon iconName="x" /></button>
+                        </div>
+                        <div className="modal-content-area">
+                            <div style={{ background:'#F8FAFC', border:'1px solid #E2E8F0', borderRadius:10, padding:'1rem', marginBottom:'1.2rem', fontSize:'0.85rem', color:'#475569' }}>
+                                <b>Required CSV columns:</b> asset_name, category, department, asset_value, owner, status
+                            </div>
+                            <input type="file" accept=".csv" onChange={handleFile} style={{ marginBottom:'1.2rem', display:'block' }} />
+
+                            {rows.length > 0 && !result && (
+                                <React.Fragment>
+                                    <div style={{ fontWeight:700, marginBottom:'0.8rem', color:'#0F172A' }}>Preview — {rows.length} rows</div>
+                                    <div className="table-responsive-wrapper" style={{ maxHeight:240, overflowY:'auto', marginBottom:'1.2rem' }}>
+                                        <table className="data-table">
+                                            <thead><tr><th>#</th><th>Name</th><th>Category</th><th>Department</th><th>Value</th><th>Owner</th><th>Status</th></tr></thead>
+                                            <tbody>
+                                                {rows.map((r,i) => (
+                                                    <tr key={i}>
+                                                        <td>{i+1}</td>
+                                                        <td>{r.asset_name}</td><td>{r.category}</td>
+                                                        <td>{r.department}</td><td>{r.asset_value}</td>
+                                                        <td>{r.owner}</td><td>{r.status}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </React.Fragment>
+                            )}
+
+                            {result && (
+                                <div style={{ background: result.failed > 0 ? '#FEF3C7' : '#F0FDF4', border:'1px solid', borderColor: result.failed > 0 ? '#FDE68A' : '#BBF7D0', borderRadius:10, padding:'1rem', marginBottom:'1.2rem' }}>
+                                    <div style={{ fontWeight:700, marginBottom:'0.5rem' }}>Import Complete: {result.imported} succeeded, {result.failed} failed</div>
+                                    {result.errors?.map((e,i) => (
+                                        <div key={i} style={{ fontSize:'0.8rem', color:'#B91C1C' }}>Row {e.row} ({e.asset_name}): {e.error}</div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div style={{ display:'flex', gap:'1rem', justifyContent:'flex-end' }}>
+                                <button className="btn-action btn-theme-outline" onClick={result ? successAction : closeAction}>{result ? 'Done' : 'Cancel'}</button>
+                                {!result && rows.length > 0 && (
+                                    <button className="btn-action btn-theme-green" onClick={doImport} disabled={importing}>
+                                        {importing ? <React.Fragment><LucideIcon iconName="loader-2" customClass="spinner-animation" /> Importing...</React.Fragment>
+                                                   : <React.Fragment><LucideIcon iconName="upload" iconSize={16} /> Import {rows.length} Assets</React.Fragment>}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // FEATURE 4 — DISPOSAL REQUEST MODAL
+        // ══════════════════════════════════════════════════════════
+        function ModalDisposal({ asset, closeAction, successAction, triggerToast }) {
+            const [form, setForm] = useState({ reason:'', residual_value:'', supporting_note:'' });
+            const [saving, setSaving] = useState(false);
+            const set = k => e => setForm(p => ({...p, [k]: e.target.value}));
+
+            async function submit() {
+                if (!form.reason || !form.residual_value) {
+                    triggerToast('Reason and residual value are required.', 'toast-error', 'alert-circle');
+                    return;
+                }
+                setSaving(true);
+                const res = await performApiRequest('/assets/dispose/request', 'POST', { asset_id: asset.asset_id, ...form });
+                setSaving(false);
+                if (res?.success) { successAction(); }
+                else { triggerToast(res?.error || 'Request failed.', 'toast-error', 'x-circle'); }
+            }
+
+            return (
+                <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && closeAction()}>
+                    <div className="modal-window" style={{ maxWidth:550 }}>
+                        <div className="modal-header">
+                            <h3><LucideIcon iconName="trash-2" /> Request Asset Disposal</h3>
+                            <button className="btn-modal-close" onClick={closeAction}><LucideIcon iconName="x" /></button>
+                        </div>
+                        <div className="modal-content-area">
+                            <div style={{ background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:10, padding:'1rem', marginBottom:'1.2rem', fontSize:'0.9rem', color:'#B91C1C', fontWeight:600 }}>
+                                Disposal of <b>{asset.asset_name}</b> ({asset.asset_id}) requires admin approval.
+                            </div>
+                            <div className="input-grid-layout">
+                                <div className="input-field-group span-full">
+                                    <label>Disposal Reason *</label>
+                                    <textarea className="input-control" rows={3} placeholder="State the legal/governance basis for disposal..." value={form.reason} onChange={set('reason')} />
+                                </div>
+                                <div className="input-field-group">
+                                    <label>Estimated Residual Value (NGN) *</label>
+                                    <input className="input-control" type="number" placeholder="0.00" value={form.residual_value} onChange={set('residual_value')} />
+                                </div>
+                                <div className="input-field-group">
+                                    <label>Supporting Note</label>
+                                    <input className="input-control" placeholder="Reference order/memo no." value={form.supporting_note} onChange={set('supporting_note')} />
+                                </div>
+                            </div>
+                            <div style={{ display:'flex', gap:'1rem', justifyContent:'flex-end', marginTop:'1.5rem' }}>
+                                <button className="btn-action btn-theme-outline" onClick={closeAction}>Cancel</button>
+                                <button className="btn-action btn-theme-gold" onClick={submit} disabled={saving}>
+                                    {saving ? <React.Fragment><LucideIcon iconName="loader-2" customClass="spinner-animation" /> Submitting...</React.Fragment>
+                                            : <React.Fragment><LucideIcon iconName="send" iconSize={16} /> Submit for Approval</React.Fragment>}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // FEATURE 4 & 6 — PENDING APPROVALS ROUTE
+        // ══════════════════════════════════════════════════════════
+        function RouteApprovals({ triggerToast, currentUserSession }) {
+            const [approvals, setApprovals] = useState([]);
+            const [isLoading, setIsLoading] = useState(true);
+
+            const load = async () => {
+                setIsLoading(true);
+                const res = await performApiRequest('/assets/pending-approvals');
+                setApprovals(res?.approvals || []);
+                setIsLoading(false);
+            };
+
+            useEffect(() => { load(); }, []);
+
+            async function act(approval_id, type, action) {
+                const note = action === 'reject' ? window.prompt('Rejection reason (optional):') : '';
+                if (note === null) return; // cancelled
+                const endpoint = type === 'DISPOSAL'
+                    ? (action === 'approve' ? '/assets/dispose/approve' : '/assets/dispose/reject')
+                    : (action === 'approve' ? '/assets/transfer/approve' : '/assets/transfer/reject');
+                const res = await performApiRequest(endpoint, 'POST', { approval_id, note: note || '' });
+                if (res?.success) {
+                    triggerToast(`Request ${action}d successfully.`, 'toast-success', action === 'approve' ? 'check-circle' : 'x-circle');
+                    load();
+                } else {
+                    triggerToast(res?.error || 'Action failed.', 'toast-error', 'alert-circle');
+                }
+            }
+
+            return (
+                <React.Fragment>
+                    <div style={{ marginBottom:'1.5rem' }}>
+                        <h2 style={{ fontSize:'1.3rem', fontWeight:800 }}>Pending Approvals</h2>
+                        <p style={{ fontSize:'0.9rem', color:'#64748B', marginTop:4 }}>Review and action pending disposal and high-value transfer requests</p>
+                    </div>
+                    <div className="panel-card">
+                        <div className="panel-card-header">
+                            <h3><LucideIcon iconName="clipboard-list" /> Awaiting Action ({approvals.length})</h3>
+                            <button className="btn-action btn-theme-outline btn-small-size" onClick={load}><LucideIcon iconName="refresh-cw" iconSize={14} /> Refresh</button>
+                        </div>
+                        <div className="table-responsive-wrapper">
+                            {isLoading ? (
+                                <div className="data-loading-state"><LucideIcon iconName="loader-2" customClass="spinner-animation" iconSize={32} /> Loading...</div>
+                            ) : approvals.length === 0 ? (
+                                <div style={{ textAlign:'center', padding:'3rem', color:'#64748B', fontWeight:600 }}>No pending approvals.</div>
+                            ) : (
+                                <table className="data-table">
+                                    <thead><tr><th>ID</th><th>Type</th><th>Asset ID</th><th>Requested By</th><th>Details</th><th>Submitted</th><th>Actions</th></tr></thead>
+                                    <tbody>
+                                        {approvals.map(a => (
+                                            <tr key={a.approval_id}>
+                                                <td><code style={{ fontSize:'0.75rem' }}>{a.approval_id}</code></td>
+                                                <td><span className={'status-badge ' + (a.approval_type === 'DISPOSAL' ? 'type-disposed' : 'type-transferred')}>{a.approval_type}</span></td>
+                                                <td><code style={{ fontSize:'0.8rem', color:'var(--dark-green)' }}>{a.asset_id}</code></td>
+                                                <td>{a.requested_by}</td>
+                                                <td style={{ fontSize:'0.82rem', color:'#475569', maxWidth:200 }}>
+                                                    {a.approval_type === 'DISPOSAL' ? `Reason: ${a.payload?.reason}` : `To: ${a.payload?.to_owner}`}
+                                                </td>
+                                                <td style={{ fontSize:'0.8rem', color:'#64748B' }}>{formatDisplayDate(a.created_at)}</td>
+                                                <td>
+                                                    {currentUserSession.role === 'admin' ? (
+                                                        <div style={{ display:'flex', gap:'0.4rem' }}>
+                                                            <button className="btn-action btn-theme-green btn-small-size" onClick={() => act(a.approval_id, a.approval_type, 'approve')}><LucideIcon iconName="check" iconSize={14} /> Approve</button>
+                                                            <button className="btn-action btn-theme-outline btn-small-size" style={{ color:'#DC2626' }} onClick={() => act(a.approval_id, a.approval_type, 'reject')}><LucideIcon iconName="x" iconSize={14} /> Reject</button>
+                                                        </div>
+                                                    ) : <span style={{ color:'#94A3B8', fontSize:'0.8rem' }}>Admin only</span>}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </React.Fragment>
+            );
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // FEATURE 5 — DEPRECIATION SECTION (used inside details modal)
+        // ══════════════════════════════════════════════════════════
+        function DepreciationPanel({ asset }) {
+            const USEFUL_LIFE = { Building:50, Vehicle:5, Equipment:10, Infrastructure:25, Land:999, Technology:3, Furniture:7, Other:10 };
+            const RESIDUAL_RATE = 0.10;
+
+            const usefulLife = USEFUL_LIFE[asset.category] || 10;
+            const originalValue = parseFloat(asset.asset_value) || 0;
+            const residualValue = originalValue * RESIDUAL_RATE;
+            const depreciableAmount = originalValue - residualValue;
+            const annualDep = usefulLife < 999 ? depreciableAmount / usefulLife : 0;
+
+            const regDate = new Date(asset.registration_date || Date.now());
+            const yearsInService = Math.max(0, (Date.now() - regDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+            const accumulatedDep = Math.min(depreciableAmount, annualDep * yearsInService);
+            const bookValue = Math.max(residualValue, originalValue - accumulatedDep);
+            const percentRemaining = originalValue > 0 ? (bookValue / originalValue) * 100 : 100;
+
+            if (asset.category === 'Land') {
+                return (
+                    <div style={{ background:'#F0FDF4', border:'1px solid #BBF7D0', borderRadius:10, padding:'1rem', marginTop:'1rem' }}>
+                        <div style={{ fontWeight:700, color:'#166534', fontSize:'0.9rem' }}>Land — No Depreciation Applicable</div>
+                        <div style={{ fontSize:'0.82rem', color:'#166534', marginTop:4 }}>Land assets do not depreciate under accounting standards.</div>
+                    </div>
+                );
+            }
+
+            return (
+                <div style={{ background:'#F8FAFC', border:'1px solid #E2E8F0', borderRadius:12, padding:'1.2rem', marginTop:'1rem' }}>
+                    <div style={{ fontWeight:800, marginBottom:'1rem', display:'flex', alignItems:'center', gap:'0.5rem', color:'#0F172A' }}>
+                        <LucideIcon iconName="trending-down" iconSize={18} /> Depreciation Tracker (Straight-Line)
+                    </div>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px,1fr))', gap:'0.8rem', marginBottom:'1rem' }}>
+                        {[
+                            ['Original Value', formatNaira(originalValue)],
+                            ['Annual Depreciation', formatNaira(annualDep)],
+                            ['Years in Service', yearsInService.toFixed(1) + ' yrs'],
+                            ['Current Book Value', formatNaira(bookValue)],
+                        ].map(([label, val]) => (
+                            <div key={label} style={{ background:'#fff', borderRadius:8, padding:'0.8rem', border:'1px solid #F1F5F9', textAlign:'center' }}>
+                                <div style={{ fontSize:'0.7rem', color:'#64748B', fontWeight:700, textTransform:'uppercase', marginBottom:4 }}>{label}</div>
+                                <div style={{ fontWeight:800, fontSize:'0.9rem', color:'#0F172A' }}>{val}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <div style={{ marginBottom:'0.4rem', fontSize:'0.82rem', color:'#475569', fontWeight:600 }}>
+                        Asset Value Remaining: {percentRemaining.toFixed(1)}%
+                    </div>
+                    <div style={{ height:12, background:'#E2E8F0', borderRadius:99, overflow:'hidden' }}>
+                        <div style={{ width: percentRemaining + '%', height:'100%', background: percentRemaining > 50 ? '#008751' : percentRemaining > 20 ? '#D97706' : '#DC2626', borderRadius:99, transition:'width 0.3s' }} />
+                    </div>
+                    <div style={{ fontSize:'0.75rem', color:'#94A3B8', marginTop:'0.5rem' }}>Useful life: {usefulLife} years · Residual: {formatNaira(residualValue)}</div>
+                </div>
+            );
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // FEATURE 7 — PDF EXPORT (attached to ComponentModalDetails)
+        // ══════════════════════════════════════════════════════════
+        function exportAssetPDF(ledgerData) {
+            const { asset, history } = ledgerData;
+            if (!asset) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+            const green = [0, 87, 55];
+            const gold = [212, 175, 55];
+            const dark = [15, 23, 42];
+            const gray = [100, 116, 139];
+
+            // Header bar
+            doc.setFillColor(...green);
+            doc.rect(0, 0, 210, 28, 'F');
+            doc.setTextColor(255,255,255);
+            doc.setFontSize(14);
+            doc.setFont('helvetica','bold');
+            doc.text('JIGAWA STATE ASSET REGISTRY', 15, 12);
+            doc.setFontSize(9);
+            doc.setFont('helvetica','normal');
+            doc.text('Official Blockchain-Verified Asset Report', 15, 19);
+            doc.text('Generated: ' + new Date().toLocaleString('en-NG'), 15, 25);
+
+            // Asset title
+            doc.setTextColor(...dark);
+            doc.setFontSize(13);
+            doc.setFont('helvetica','bold');
+            doc.text(asset.asset_name, 15, 40);
+            doc.setFontSize(9);
+            doc.setFont('helvetica','normal');
+            doc.setTextColor(...gray);
+            doc.text('Asset ID: ' + asset.asset_id, 15, 47);
+
+            // Details table
+            let y = 58;
+            doc.setFontSize(10);
+            doc.setFont('helvetica','bold');
+            doc.setTextColor(...green);
+            doc.text('ASSET DETAILS', 15, y);
+            y += 6;
+
+            const details = [
+                ['Category', asset.category], ['Department', asset.department],
+                ['Owner', asset.owner], ['Status', asset.status],
+                ['Value (NGN)', 'NGN ' + Number(asset.asset_value||0).toLocaleString('en-NG')],
+                ['Registered', asset.registration_date ? new Date(asset.registration_date).toLocaleDateString('en-NG') : '-'],
+                ['Block Index', '#' + asset.block_index],
+            ];
+
+            details.forEach(([label, value]) => {
+                doc.setFont('helvetica','bold');
+                doc.setTextColor(...gray);
+                doc.setFontSize(8);
+                doc.text(label + ':', 15, y);
+                doc.setFont('helvetica','normal');
+                doc.setTextColor(...dark);
+                doc.text(String(value || '-'), 55, y);
+                y += 6;
+            });
+
+            // Block hash
+            y += 3;
+            doc.setFillColor(240, 253, 244);
+            doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+            doc.setFontSize(7);
+            doc.setTextColor(22, 101, 52);
+            doc.setFont('helvetica','bold');
+            doc.text('SHA-256 Block Hash: ', 18, y+6);
+            doc.setFont('helvetica','normal');
+            doc.text(asset.block_hash || '-', 55, y+6);
+            y += 18;
+
+            // History
+            doc.setFontSize(10);
+            doc.setFont('helvetica','bold');
+            doc.setTextColor(...green);
+            doc.text('TRANSACTION HISTORY', 15, y);
+            y += 6;
+
+            (history || []).forEach((tx, i) => {
+                if (y > 260) { doc.addPage(); y = 20; }
+                doc.setFillColor(249, 250, 251);
+                doc.roundedRect(15, y, 180, 18, 2, 2, 'F');
+                doc.setFontSize(8);
+                doc.setFont('helvetica','bold');
+                doc.setTextColor(...dark);
+                doc.text(tx.action?.replace(/_/g,' ') || '', 18, y+6);
+                doc.setFont('helvetica','normal');
+                doc.setTextColor(...gray);
+                doc.text('Actor: ' + (tx.actor||'-') + '   Block: #' + (tx.block_index||'-'), 18, y+11);
+                doc.text('TX ID: ' + (tx.tx_id||'-'), 18, y+16);
+                y += 22;
+            });
+
+            // Footer
+            const pageCount = doc.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFillColor(...green);
+                doc.rect(0, 285, 210, 12, 'F');
+                doc.setTextColor(255,255,255);
+                doc.setFontSize(7);
+                doc.setFont('helvetica','normal');
+                doc.text('Official Jigawa State Government Document — Jigawa State Asset Registry — Page ' + i + ' of ' + pageCount, 15, 292);
+            }
+
+            doc.save(asset.asset_id + '_audit_report.pdf');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // FEATURE 8 — SESSION MANAGEMENT ROUTE
+        // ══════════════════════════════════════════════════════════
+        function RouteSessions({ triggerToast }) {
+            const [sessions, setSessions] = useState([]);
+            const [isLoading, setIsLoading] = useState(true);
+
+            const load = async () => {
+                setIsLoading(true);
+                const res = await performApiRequest('/sessions');
+                setSessions(res?.sessions || []);
+                setIsLoading(false);
+            };
+
+            useEffect(() => { load(); }, []);
+
+            async function forceLogout(session_id, username) {
+                if (!window.confirm(`Force logout session for "${username}"?`)) return;
+                const res = await performApiRequest('/sessions/' + session_id, 'DELETE');
+                if (res?.success) {
+                    triggerToast('Session terminated.', 'toast-success', 'log-out');
+                    load();
+                } else {
+                    triggerToast(res?.error || 'Failed.', 'toast-error', 'x-circle');
+                }
+            }
+
+            return (
+                <React.Fragment>
+                    <div style={{ marginBottom:'1.5rem' }}>
+                        <h2 style={{ fontSize:'1.3rem', fontWeight:800 }}>Session Management</h2>
+                        <p style={{ fontSize:'0.9rem', color:'#64748B', marginTop:4 }}>Monitor and control active user sessions</p>
+                    </div>
+                    <div className="panel-card">
+                        <div className="panel-card-header">
+                            <h3><LucideIcon iconName="monitor" /> Active Sessions ({sessions.length})</h3>
+                            <button className="btn-action btn-theme-outline btn-small-size" onClick={load}><LucideIcon iconName="refresh-cw" iconSize={14} /> Refresh</button>
+                        </div>
+                        <div className="table-responsive-wrapper">
+                            {isLoading ? (
+                                <div className="data-loading-state"><LucideIcon iconName="loader-2" customClass="spinner-animation" iconSize={32} /> Loading sessions...</div>
+                            ) : sessions.length === 0 ? (
+                                <div style={{ textAlign:'center', padding:'3rem', color:'#64748B', fontWeight:600 }}>No active sessions found.</div>
+                            ) : (
+                                <table className="data-table">
+                                    <thead><tr><th>User</th><th>Role</th><th>IP Address</th><th>Login Time</th><th>Last Activity</th><th>Expires</th><th>Action</th></tr></thead>
+                                    <tbody>
+                                        {sessions.map(s => (
+                                            <tr key={s.session_id}>
+                                                <td>
+                                                    <div style={{ fontWeight:700 }}>{s.full_name}</div>
+                                                    <div style={{ fontSize:'0.78rem', color:'#94A3B8' }}>{s.username}</div>
+                                                </td>
+                                                <td><span style={{ background:'#F1F5F9', padding:'0.2rem 0.7rem', borderRadius:99, fontSize:'0.75rem', fontWeight:700 }}>{s.role}</span></td>
+                                                <td><code style={{ fontSize:'0.8rem' }}>{s.ip_address}</code></td>
+                                                <td style={{ fontSize:'0.82rem', color:'#64748B' }}>{formatDisplayTimestamp(s.created_at)}</td>
+                                                <td style={{ fontSize:'0.82rem', color:'#64748B' }}>{formatDisplayTimestamp(s.last_activity)}</td>
+                                                <td style={{ fontSize:'0.8rem', color:'#94A3B8' }}>{formatDisplayTimestamp(s.expires_at)}</td>
+                                                <td>
+                                                    <button className="btn-action btn-theme-outline btn-small-size" style={{ color:'#DC2626' }} onClick={() => forceLogout(s.session_id, s.username)}>
+                                                        <LucideIcon iconName="log-out" iconSize={14} /> Force Logout
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </React.Fragment>
+            );
+        }
+
 
         // Application Render Injection
         const DOMContainer = document.getElementById('react-application-root');
