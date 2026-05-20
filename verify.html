@@ -596,26 +596,25 @@
         const { useState, useEffect, useRef } = React;
         
         // Define base route for internal API
-       const BACKEND_API_URL = window.location.origin + '/api';
+        const BACKEND_API_URL = window.location.origin + '/api';
 
         // ── Component: Dynamic Lucide Icon Renderer ─────────────────
         function DynamicIcon({ iconName, classNameText = "", sizeValue = 20, inlineStyles = {} }) {
-            const iconRefNode = useRef(null);
-            
+            const wrapperRef = useRef(null);
+
             useEffect(() => {
-                // Instantiates SVG replacing the <i> tag
-                if (iconRefNode.current) {
-                    window.lucide.createIcons({ root: iconRefNode.current.parentElement });
+                if (wrapperRef.current) {
+                    wrapperRef.current.innerHTML = '<i data-lucide="' + iconName + '"></i>';
+                    window.lucide.createIcons({ root: wrapperRef.current });
                 }
-            }, [iconName]);
-            
+            }, [iconName, sizeValue]);
+
             return (
-                <i 
-                    ref={iconRefNode} 
-                    data-lucide={iconName} 
-                    className={classNameText} 
-                    style={{ width: sizeValue, height: sizeValue, ...inlineStyles }}
-                ></i>
+                <span
+                    ref={wrapperRef}
+                    className={classNameText}
+                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: sizeValue, height: sizeValue, ...inlineStyles }}
+                ></span>
             );
         }
 
@@ -681,9 +680,7 @@
             }, []);
 
             // Re-bind Lucide icons when state dictates a re-render
-            useEffect(() => { 
-                window.lucide.createIcons(); 
-            }, [verificationResult, isSearching, isSystemOnline, errorMessage]);
+            // Removed: global window.lucide.createIcons() — icons are now managed per-component
 
             /**
              * Core Search/Verification execution
